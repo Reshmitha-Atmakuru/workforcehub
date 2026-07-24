@@ -219,10 +219,16 @@ const syncProjectFromTasks = (pId) => {
     return s === 'DONE' || s === 'COMPLETED';
   }).length;
 
+  // FIX: Calculate progress and status correctly (were undefined variables before)
+  const calcProgress = total === 0 ? (allProjects[pIndex].progress || 0) : Math.round((done / total) * 100);
+  let calcStatus = allProjects[pIndex].status || 'In Progress';
+  if (calcProgress === 100) calcStatus = 'Completed';
+  else if (calcProgress > 0 && calcStatus === 'Not Started') calcStatus = 'In Progress';
+
   allProjects[pIndex] = {
     ...allProjects[pIndex],
-    progress,
-    status,
+    progress: calcProgress,
+    status: calcStatus,
     totalTasks:     total,
     completedTasks: done,
     pendingTasks:   total - done,
@@ -381,60 +387,8 @@ const handleMockRequest = (method, url, data) => {
     return { status: 200, data: currentUser };
   }
 
-  if (method === 'get' && cleanUrl === '/dashboard/stats') {
-    const totalEmployees = employees.length;
-    const activeProjectsList = projects.filter(p => p.status === 'IN_PROGRESS');
-    const activeProjectsCount = activeProjectsList.length;
-    const totalProjectsCount = projects.length;
-
-    // Helper to check if a task is done
-    const isTaskDone = (t) => {
-      const s = String(t.status || '').toUpperCase();
-      return s === 'DONE' || s === 'COMPLETED';
-    };
-
-    const pendingTasksList = tasks.filter(t => !isTaskDone(t));
-    const pendingTasksCount = pendingTasksList.length;
-    const completedTasksCount = tasks.filter(t => isTaskDone(t)).length;
-    const totalTasksCount = tasks.length;
-    const taskCompletionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
-    const urgentTasksCount = tasks.filter(t => String(t.priority).toUpperCase() === 'URGENT' && !isTaskDone(t)).length;
-
-    // Calculate department breakdown
-    const deptMap = {};
-    employees.forEach(e => {
-      const d = e.department || 'General';
-      deptMap[d] = (deptMap[d] || 0) + 1;
-    });
-    const departmentBreakdown = Object.entries(deptMap).map(([name, count]) => {
-      const percentage = totalEmployees > 0 ? Math.round((count / totalEmployees) * 100) : 0;
-      return { name, count, percentage };
-    });
-
-    const recentActivities = auditLogs.slice(-5).reverse();
-
-    return {
-      status: 200,
-      data: {
-        totalEmployees,
-        totalWorkforce: totalEmployees,
-        activeProjects: activeProjectsCount,
-        totalProjects: totalProjectsCount,
-        pendingTasks: pendingTasksCount,
-        urgentTasks: urgentTasksCount,
-        taskCompletionRate,
-        completedTasksCount,
-        totalTasksCount,
-        activeProjectsList,
-        activeProjectsOverview: activeProjectsList,
-        departmentBreakdown,
-        recentActivities,
-        pendingLeaves: 3,
-        attendanceRate: 94.8,
-        departmentCount: Object.keys(deptMap).length,
-      }
-    };
-  }
+  // NOTE: The duplicate /dashboard/stats handler that was here (returning no employee personalized data)
+  // has been intentionally REMOVED. The correct full handler is below (line ~896 in original).
 
   if (method === 'get' && cleanUrl === '/employees') {
     let result = [...employees];
@@ -909,15 +863,24 @@ const handleMockRequest = (method, url, data) => {
 
     const activeProjectsList = projects.map(p => {
       const pTasks = tasks.filter(t => Number(t.projectId) === Number(p.id));
-      const done = pTasks.filter(t => t.status === 'COMPLETED' || t.status === 'DONE' || t.status === 'Completed' || t.status === 'Done').length;
+      const done = pTasks.filter(t => {
+        const s = String(t.status || '').toUpperCase();
+        return s === 'DONE' || s === 'COMPLETED';
+      }).length;
+      const calcProgress = pTasks.length === 0 ? (p.progress || 0) : Math.round((done / pTasks.length) * 100);
       return {
         ...p,
+        progress: calcProgress,
         totalTasks: pTasks.length,
         completedTasks: done,
         pendingTasks: pTasks.length - done
       };
     });
-    const activeProjects = activeProjectsList.filter(p => p.status !== 'Completed' && p.status !== 'COMPLETED').length;
+    // FIX: 'In Progress' uses space and mixed case — not 'IN_PROGRESS'
+    const activeProjects = activeProjectsList.filter(p => {
+      const s = String(p.status || '').toLowerCase();
+      return s !== 'completed' && s !== 'done';
+    }).length;
 
     // Department breakdown
     const deptMap = {};

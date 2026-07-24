@@ -110,9 +110,8 @@ public class DashboardServiceImpl implements DashboardService {
                             .distinct()
                             .collect(Collectors.toList());
 
-                    if (empProjects.isEmpty() && emp.getDepartment() != null) {
-                        empProjects = projectRepository.searchProjects(null, emp.getDepartment(), null);
-                    }
+                    // NOTE: Removed department fallback — only show projects an employee
+                    // has been explicitly assigned to via tasks (correct behavior)
 
                     myAssignedProjects = empProjects.stream().map(p -> mapProjectToDto(p, tasks)).collect(Collectors.toList());
 

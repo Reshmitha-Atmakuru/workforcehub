@@ -38,9 +38,12 @@ export default function Dashboard({ onOpenNewEmployeeModal }) {
     const handleVisibility = () => { if (document.visibilityState === 'visible') fetchDashboardStats(); };
     window.addEventListener('workforcehub:data-updated', handleDataUpdate);
     document.addEventListener('visibilitychange', handleVisibility);
+    // Auto-refresh every 30 seconds so Admin->Employee assignment updates are visible without manual reload
+    const pollInterval = setInterval(fetchDashboardStats, 30000);
     return () => {
       window.removeEventListener('workforcehub:data-updated', handleDataUpdate);
       document.removeEventListener('visibilitychange', handleVisibility);
+      clearInterval(pollInterval);
     };
   }, []);
 
@@ -134,7 +137,8 @@ export default function Dashboard({ onOpenNewEmployeeModal }) {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-white">{stats?.completedTasksCount ?? 0}</p>
+            {/* FIX: Use employee-specific completedTasksCount (assignedTasksCount - pendingTasksCount) */}
+            <p className="text-2xl font-bold text-white">{(stats?.assignedTasksCount ?? 0) - (stats?.pendingTasksCount ?? 0)}</p>
             <p className="text-[11px] text-slate-500 mt-1">Successfully delivered items</p>
           </div>
 
@@ -158,10 +162,21 @@ export default function Dashboard({ onOpenNewEmployeeModal }) {
                 <Award className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-white">{stats?.taskCompletionRate ?? 0}%</p>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${stats?.taskCompletionRate ?? 0}%` }}></div>
-            </div>
+            {/* FIX: Compute employee-specific completion rate from personal tasks */}
+            {(() => {
+              const total = stats?.assignedTasksCount ?? 0;
+              const pending = stats?.pendingTasksCount ?? 0;
+              const done = total - pending;
+              const rate = total === 0 ? 0 : Math.round((done / total) * 100);
+              return (
+                <>
+                  <p className="text-2xl font-bold text-white">{rate}%</p>
+                  <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${rate}%` }}></div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
 

@@ -77,10 +77,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        if (projects.isEmpty() && emp.getDepartment() != null) {
-            projects = projectRepository.searchProjects(null, emp.getDepartment(), null);
-        }
-
+        // NOTE: Department fallback removed — only show explicitly task-assigned projects
         return projects.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -246,6 +243,12 @@ public class ProjectServiceImpl implements ProjectService {
                 .budget(p.getBudget())
                 .startDate(p.getStartDate())
                 .deadline(p.getDeadline())
+                // Populate assignedEmployeeIds from tasks so frontend knows who is on the project
+                .assignedEmployeeIds(tasks.stream()
+                        .filter(t -> t.getAssignedEmployee() != null)
+                        .map(t -> t.getAssignedEmployee().getId())
+                        .distinct()
+                        .collect(java.util.stream.Collectors.toList()))
                 .build();
     }
 }
