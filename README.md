@@ -82,6 +82,7 @@ workforcehub/
 ├── .gitignore                                # Git ignore rules
 ├── database.sql                              # Full MySQL schema + seed data
 ├── WorkforceHub.postman_collection.json      # Postman API collection (all endpoints)
+├── Workforce_Employee_Productivity_Report.xlsx # Employee Productivity Report Excel spreadsheet
 ├── screenshots/                              # Application screenshots
 │   ├── system_flowchart.png                  # System architecture flowchart
 │   ├── admindashboard.png
