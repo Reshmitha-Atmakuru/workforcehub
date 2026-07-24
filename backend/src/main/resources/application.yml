@@ -10,7 +10,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/workforce_hub?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${SPRING_DATASOURCE_USERNAME:root}
-    password: ${SPRING_DATASOURCE_PASSWORD:Chinnuchikki@123}
+    password: ${SPRING_DATASOURCE_PASSWORD:your_password_here}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
