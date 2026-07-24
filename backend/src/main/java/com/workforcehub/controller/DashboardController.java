@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping({"/api/dashboard", "/dashboard"})
+@RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Executive Dashboard", description = "Realtime Workforce Analytics, Department Aggregations & Project Overviews")

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/api/audit-logs", "/audit-logs"})
+@RequestMapping("/api/audit-logs")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Security Audit Logs", description = "System Audit Records, Access Trails & Mutation History Tracking")

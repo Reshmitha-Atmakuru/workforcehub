@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/api/departments", "/departments"})
+@RequestMapping("/api/departments")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class DepartmentController {

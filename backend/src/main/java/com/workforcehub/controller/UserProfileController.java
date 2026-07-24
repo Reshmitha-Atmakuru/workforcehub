@@ -25,7 +25,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @RestController
-@RequestMapping({"/api/profile", "/profile"})
+@RequestMapping("/api/profile")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "User Profile", description = "User profile management and profile image upload")
@@ -38,7 +38,8 @@ public class UserProfileController {
     @GetMapping
     @Operation(summary = "Get current user profile", description = "Returns the authenticated user's profile information")
     public ResponseEntity<UserDto> getProfile(Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findAll().stream().findFirst())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -52,7 +53,8 @@ public class UserProfileController {
             @RequestParam("file") MultipartFile file,
             Authentication authentication) throws IOException {
 
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findAll().stream().findFirst())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -96,9 +98,12 @@ public class UserProfileController {
 
             if (resource.exists() && resource.isReadable()) {
                 String contentType = "image/jpeg";
-                if (filename.endsWith(".png")) contentType = "image/png";
-                else if (filename.endsWith(".gif")) contentType = "image/gif";
-                else if (filename.endsWith(".webp")) contentType = "image/webp";
+                if (filename.endsWith(".png"))
+                    contentType = "image/png";
+                else if (filename.endsWith(".gif"))
+                    contentType = "image/gif";
+                else if (filename.endsWith(".webp"))
+                    contentType = "image/webp";
 
                 return ResponseEntity.ok()
                         .contentType(MediaType.parseMediaType(contentType))

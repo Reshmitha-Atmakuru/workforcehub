@@ -17,7 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping({"/api/employees", "/employees"})
+@RequestMapping("/api/employees")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Employee Directory", description = "Workforce CRUD Operations, Pagination, Sorting & Filtering")
@@ -60,23 +60,28 @@ public class EmployeeController {
 
     @PostMapping
     @Operation(summary = "Create Employee Record", description = "Adds a new workforce member to system and logs audit trail event")
-    public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody EmployeeDto employeeDto, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+    public ResponseEntity<EmployeeDto> createEmployee(@Valid @RequestBody EmployeeDto employeeDto,
+            Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(employeeService.createEmployee(employeeDto, username));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Employee Profile", description = "Modifies employee attributes (department, role, salary, skills) and logs audit trail")
-    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id, @Valid @RequestBody EmployeeDto employeeDto, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable Long id,
+            @Valid @RequestBody EmployeeDto employeeDto, Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         return ResponseEntity.ok(employeeService.updateEmployee(id, employeeDto, username));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Employee Record", description = "Removes employee profile from database and logs audit trail event")
     public ResponseEntity<Void> deleteEmployee(@PathVariable Long id, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         employeeService.deleteEmployee(id, username);
         return ResponseEntity.noContent().build();
     }

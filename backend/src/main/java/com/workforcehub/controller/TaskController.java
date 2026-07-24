@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/api/tasks", "/tasks"})
+@RequestMapping("/api/tasks")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Task Deliverables", description = "Task Registry, Assignment, Status Transitions & Auto Progress Triggers")
@@ -42,22 +42,26 @@ public class TaskController {
     @PostMapping
     @Operation(summary = "Create & Assign Task", description = "Creates deliverable task, assigns to employee, and triggers parent project progress recalculation")
     public ResponseEntity<TaskDto> createTask(@Valid @RequestBody TaskDto taskDto, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(taskService.createTask(taskDto, username));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update Task Status & Details", description = "Updates task status (TODO/IN_PROGRESS/COMPLETED) and automatically recalculates parent project progress percentage in DB")
-    public ResponseEntity<TaskDto> updateTask(@PathVariable Long id, @Valid @RequestBody TaskDto taskDto, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+    public ResponseEntity<TaskDto> updateTask(@PathVariable Long id, @Valid @RequestBody TaskDto taskDto,
+            Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         return ResponseEntity.ok(taskService.updateTask(id, taskDto, username));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete Task", description = "Removes task item and updates parent project progress percentage")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id, Authentication authentication) {
-        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName()
+                : "admin";
         taskService.deleteTask(id, username);
         return ResponseEntity.noContent().build();
     }

@@ -83,6 +83,8 @@ workforcehub/
 ├── database.sql                              # Full MySQL schema + seed data
 ├── WorkforceHub.postman_collection.json      # Postman API collection (all endpoints)
 ├── Workforce_Employee_Productivity_Report.xlsx # Employee Productivity Report Excel spreadsheet
+├── Workforce_Project_Portfolio_Health_Report.xlsx # Project Portfolio Health Excel spreadsheet
+├── Workforce_Task_Status_Report.xlsx         # Task Status Report Excel spreadsheet
 ├── WorkforceHub_productivity_Report.pdf     # Employee Productivity Report PDF document
 ├── screenshots/                              # Application screenshots
 │   ├── system_flowchart.png                  # System architecture flowchart

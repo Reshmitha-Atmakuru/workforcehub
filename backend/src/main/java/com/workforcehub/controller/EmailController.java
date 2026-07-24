@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping({"/api/email", "/email"})
+@RequestMapping("/api/email")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class EmailController {
@@ -71,9 +71,8 @@ public class EmailController {
                 to,
                 "Test Email — WorkforceHub",
                 "This is a test email from WorkforceHub Enterprise.\n\n"
-                + "If you received this, your email notification system is configured correctly! 🎉\n\n"
-                + "All automated notifications (task assignments, leave approvals, status updates) will be sent from this address."
-        );
+                        + "If you received this, your email notification system is configured correctly! 🎉\n\n"
+                        + "All automated notifications (task assignments, leave approvals, status updates) will be sent from this address.");
 
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");

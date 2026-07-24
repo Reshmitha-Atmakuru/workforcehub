@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/api/projects", "/projects"})
+@RequestMapping("/api/projects")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @Tag(name = "Project Management", description = "Enterprise Project Creation, Portfolio Filtering & Dynamic Progress Tracking")

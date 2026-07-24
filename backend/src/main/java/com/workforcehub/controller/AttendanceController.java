@@ -17,51 +17,51 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/api/attendance", "/attendance"})
+@RequestMapping("/api/attendance")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class AttendanceController {
 
+        private final AttendanceRepository attendanceRepository;
+        private final EmployeeRepository employeeRepository;
 
-    private final AttendanceRepository attendanceRepository;
-    private final EmployeeRepository employeeRepository;
+        @GetMapping
+        public ResponseEntity<List<AttendanceDto>> getAttendance(
+                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+                LocalDate queryDate = date != null ? date : LocalDate.now();
 
-    @GetMapping
-    public ResponseEntity<List<AttendanceDto>> getAttendance(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        LocalDate queryDate = date != null ? date : LocalDate.now();
+                List<AttendanceDto> dtos = attendanceRepository.findByDate(queryDate).stream()
+                                .map(a -> AttendanceDto.builder()
+                                                .id(a.getId())
+                                                .employeeId(a.getEmployee().getId())
+                                                .employeeName(a.getEmployee().getFirstName() + " "
+                                                                + a.getEmployee().getLastName())
+                                                .date(a.getDate())
+                                                .checkIn(a.getCheckIn())
+                                                .checkOut(a.getCheckOut())
+                                                .status(a.getStatus())
+                                                .workHours(a.getWorkHours())
+                                                .build())
+                                .collect(Collectors.toList());
 
-        List<AttendanceDto> dtos = attendanceRepository.findByDate(queryDate).stream()
-                .map(a -> AttendanceDto.builder()
-                        .id(a.getId())
-                        .employeeId(a.getEmployee().getId())
-                        .employeeName(a.getEmployee().getFirstName() + " " + a.getEmployee().getLastName())
-                        .date(a.getDate())
-                        .checkIn(a.getCheckIn())
-                        .checkOut(a.getCheckOut())
-                        .status(a.getStatus())
-                        .workHours(a.getWorkHours())
-                        .build())
-                .collect(Collectors.toList());
+                return ResponseEntity.ok(dtos);
+        }
 
-        return ResponseEntity.ok(dtos);
-    }
+        @PostMapping("/check-in")
+        public ResponseEntity<Attendance> checkIn(@RequestParam Long employeeId) {
+                Employee employee = employeeRepository.findById(employeeId)
+                                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
-    @PostMapping("/check-in")
-    public ResponseEntity<Attendance> checkIn(@RequestParam Long employeeId) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
+                LocalDate today = LocalDate.now();
+                Attendance attendance = attendanceRepository.findByEmployeeIdAndDate(employeeId, today)
+                                .orElse(Attendance.builder()
+                                                .employee(employee)
+                                                .date(today)
+                                                .checkIn(LocalTime.now())
+                                                .status("PRESENT")
+                                                .workHours(8.0)
+                                                .build());
 
-        LocalDate today = LocalDate.now();
-        Attendance attendance = attendanceRepository.findByEmployeeIdAndDate(employeeId, today)
-                .orElse(Attendance.builder()
-                        .employee(employee)
-                        .date(today)
-                        .checkIn(LocalTime.now())
-                        .status("PRESENT")
-                        .workHours(8.0)
-                        .build());
-
-        return ResponseEntity.ok(attendanceRepository.save(attendance));
-    }
+                return ResponseEntity.ok(attendanceRepository.save(attendance));
+        }
 }
