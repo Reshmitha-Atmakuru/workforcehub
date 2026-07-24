@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function Tasks() {
-  const { isAdmin, canManageTasks, canManageEmployees } = useAuth();
+  const { isAdmin, isEmployee, canManageTasks, canManageEmployees } = useAuth();
   const [searchParams] = useSearchParams();
   const urlProjectId = searchParams.get('projectId');
 
@@ -76,9 +76,10 @@ export default function Tasks() {
 
   const fetchData = async () => {
     try {
+      const taskEndpoint = (!canManageTasks && isEmployee) ? '/tasks/my-tasks' : '/tasks';
       const requests = [
-        API.get('/tasks', { params: { search, projectId, assignedEmployeeId, status, priority } }),
-        API.get('/projects')
+        API.get(taskEndpoint, { params: { search, projectId, assignedEmployeeId, status, priority } }),
+        API.get((!canManageTasks && isEmployee) ? '/projects/my-projects' : '/projects')
       ];
       if (canManageTasks || canManageEmployees || isAdmin) {
         requests.push(API.get('/employees'));

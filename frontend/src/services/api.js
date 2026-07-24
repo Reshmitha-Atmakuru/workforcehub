@@ -532,6 +532,56 @@ const handleMockRequest = (method, url, data) => {
     return { status: 200, data: result };
   }
 
+  // ── GET /tasks/my-tasks ───────────────────────────────────────────────────────
+  if (method === 'get' && cleanUrl === '/tasks/my-tasks') {
+    let currentUser = null;
+    try {
+      currentUser = JSON.parse(localStorage.getItem('workforce_user'));
+    } catch (e) {}
+    const currentEmp = employees.find(e =>
+      (currentUser?.email && e.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+      (currentUser?.id && (Number(e.userId) === Number(currentUser.id) || Number(e.id) === Number(currentUser.id)))
+    );
+    const empId = currentEmp?.id;
+    const empName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.username || '';
+
+    const myTasks = tasks.filter(t => {
+      if (empId && Number(t.assignedEmployeeId) === Number(empId)) return true;
+      if (empName && t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) return true;
+      if (empName && t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase()) return true;
+      if (currentUser?.username && t.assignedUsername && t.assignedUsername === currentUser.username) return true;
+      return false;
+    });
+    return { status: 200, data: myTasks };
+  }
+
+  // ── GET /projects/my-projects ─────────────────────────────────────────────────
+  if (method === 'get' && cleanUrl === '/projects/my-projects') {
+    let currentUser = null;
+    try {
+      currentUser = JSON.parse(localStorage.getItem('workforce_user'));
+    } catch (e) {}
+    const currentEmp = employees.find(e =>
+      (currentUser?.email && e.email.toLowerCase() === currentUser.email.toLowerCase()) ||
+      (currentUser?.id && (Number(e.userId) === Number(currentUser.id) || Number(e.id) === Number(currentUser.id)))
+    );
+    const empId = currentEmp?.id;
+    const empName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.username || '';
+    const myTasks = tasks.filter(t => {
+      if (empId && Number(t.assignedEmployeeId) === Number(empId)) return true;
+      if (empName && t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) return true;
+      if (empName && t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase()) return true;
+      return false;
+    });
+    const myTaskProjectIds = [...new Set(myTasks.map(t => Number(t.projectId)).filter(Boolean))];
+    const myDirectProjects = empId
+      ? projects.filter(p => Array.isArray(p.assignedEmployeeIds) && p.assignedEmployeeIds.some(id => Number(id) === Number(empId)))
+      : [];
+    const allMyProjectIds = [...new Set([...myTaskProjectIds, ...myDirectProjects.map(p => Number(p.id))])];
+    const myProjects = projects.filter(p => allMyProjectIds.includes(Number(p.id)));
+    return { status: 200, data: myProjects };
+  }
+
   // ── POST /tasks ──────────────────────────────────────────────────────────────
   if (method === 'post' && cleanUrl === '/tasks') {
     // Re-read tasks fresh to avoid stale count

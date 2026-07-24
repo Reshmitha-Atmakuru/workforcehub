@@ -75,7 +75,8 @@ export default function Projects() {
 
   const fetchData = async () => {
     try {
-      const requests = [API.get('/projects', { params: { search, department, status, priority, sortBy, sortOrder } })];
+      const projectEndpoint = (!canManageProjects && isEmployee) ? '/projects/my-projects' : '/projects';
+      const requests = [API.get(projectEndpoint, { params: { search, department, status, priority, sortBy, sortOrder } })];
       if (canManageProjects || canManageEmployees || isEmployee) {
         requests.push(API.get('/employees'));
       }
