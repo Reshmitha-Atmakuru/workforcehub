@@ -369,6 +369,26 @@ ProjectRepository.save() persists updated project
 
 ---
 
+## 📊 Productivity Reports & Exports (PDF & Excel)
+
+WorkforceHub supports automated report generation and direct exports in both **PDF** and **Excel (.xlsx)** formats. The generated report files are committed and available directly in the repository:
+
+- 📄 **PDF Report File**: [`WorkforceHub_productivity_Report.pdf`](WorkforceHub_productivity_Report.pdf) (or [`WorkforceHub_productivity_Report (1).pdf`](<WorkforceHub_productivity_Report (1).pdf>))
+- 📊 **Excel Spreadsheet**: [`Workforce_Employee_Productivity_Report.xlsx`](Workforce_Employee_Productivity_Report.xlsx) (or [`Workforce_Employee_Productivity_Report (1).xlsx`](<Workforce_Employee_Productivity_Report (1).xlsx>))
+
+### 📋 Exported Employee Productivity Report Data
+
+| Employee Code | Employee Name | Department | Total Assigned | Pending | Completed | Completion Rate |
+|---|---|---|---|---|---|---|
+| `EMP-1001` | Vikram M | Engineering | 0 | 0 | 0 | 0% |
+| `EMP-1002` | John Doe | Engineering | 0 | 0 | 0 | 0% |
+| `EMP-1003` | Riya Joseph | Engineering | 0 | 0 | 0 | 0% |
+| `EMP-1004` | Sarah Jenkins | Product | 1 | 1 | 0 | 0% |
+| `EMP-1005` | Kumar Varma | Finance | 1 | 0 | 1 | **100%** |
+| `EMP-1006` | Krishna K | Human Resources | 5 | 5 | 0 | 0% |
+
+---
+
 ## 🧪 Running Unit Tests
 
 ```bash
