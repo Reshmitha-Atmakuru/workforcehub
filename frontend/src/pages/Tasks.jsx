@@ -36,6 +36,24 @@ export default function Tasks() {
   const [sortBy, setSortBy] = useState('id');
   const [sortOrder, setSortOrder] = useState('DESC');
 
+  // Modal / Edit / Delete State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    projectId: '',
+    assignedEmployeeId: '',
+    priority: 'HIGH',
+    status: 'TODO',
+    progress: 0,
+    remarks: '',
+    dueDate: '2026-08-15',
+  });
+
   useEffect(() => {
     if (urlProjectId) {
       setProjectId(urlProjectId);
