@@ -61,7 +61,7 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
       if (role && role !== 'All') params.role = role;
       if (status && status !== 'All') params.status = status;
       if (sortBy) params.sortBy = sortBy;
-      if (sortOrder) params.sortOrder = sortOrder;
+      if (sortOrder) params.direction = sortOrder;  // Backend expects 'direction', not 'sortOrder'
 
       const res = await API.get('/employees', { params });
       // Handle Spring Boot Page response: {content: [...]} or flat array or mock {data: [...]}

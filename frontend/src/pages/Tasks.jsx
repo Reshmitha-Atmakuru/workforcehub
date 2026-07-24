@@ -77,8 +77,17 @@ export default function Tasks() {
   const fetchData = async () => {
     try {
       const taskEndpoint = (!canManageTasks && isEmployee) ? '/tasks/my-tasks' : '/tasks';
+
+      // Build clean params — never send 'All' string for Long-typed backend params
+      const taskParams = {};
+      if (search && search.trim()) taskParams.search = search.trim();
+      if (projectId && projectId !== 'All') taskParams.projectId = projectId;
+      if (assignedEmployeeId && assignedEmployeeId !== 'All') taskParams.assignedEmployeeId = assignedEmployeeId;
+      if (status && status !== 'All') taskParams.status = status;
+      if (priority && priority !== 'All') taskParams.priority = priority;
+
       const requests = [
-        API.get(taskEndpoint, { params: { search, projectId, assignedEmployeeId, status, priority } }),
+        API.get(taskEndpoint, { params: taskParams }),
         API.get((!canManageTasks && isEmployee) ? '/projects/my-projects' : '/projects')
       ];
       if (canManageTasks || canManageEmployees || isAdmin) {

@@ -398,7 +398,7 @@ const handleMockRequest = (method, url, data) => {
     const status = params.get('status');
     const role = params.get('role');
     const sortBy = params.get('sortBy');
-    const sortOrder = params.get('sortOrder') || 'ASC';
+    const sortOrder = params.get('direction') || params.get('sortOrder') || 'DESC'; // Accept both param names
 
     if (search) {
       result = result.filter(e => 

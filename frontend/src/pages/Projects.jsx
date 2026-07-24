@@ -76,7 +76,14 @@ export default function Projects() {
   const fetchData = async () => {
     try {
       const projectEndpoint = (!canManageProjects && isEmployee) ? '/projects/my-projects' : '/projects';
-      const requests = [API.get(projectEndpoint, { params: { search, department, status, priority, sortBy, sortOrder } })];
+      // Backend supports: search, department, status only
+      // priority filter and sortBy/sortOrder are applied client-side below
+      const backendParams = {};
+      if (search && search.trim()) backendParams.search = search.trim();
+      if (department && department !== 'All') backendParams.department = department;
+      if (status && status !== 'All') backendParams.status = status;
+
+      const requests = [API.get(projectEndpoint, { params: backendParams })];
       if (canManageProjects || canManageEmployees || isEmployee) {
         requests.push(API.get('/employees'));
       }
@@ -338,7 +345,25 @@ export default function Projects() {
         <div className="p-8 text-center text-slate-400 text-xs">No projects found.</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {(Array.isArray(projects) ? projects : []).map((prj) => {
+          {(() => {
+            // Client-side priority filter + sort (backend doesn't support these params)
+            let filtered = [...projects];
+            if (priority && priority !== 'All') {
+              filtered = filtered.filter(p => p.priority && p.priority.toUpperCase() === priority.toUpperCase());
+            }
+            if (sortBy) {
+              filtered.sort((a, b) => {
+                let valA = a[sortBy] ?? '';
+                let valB = b[sortBy] ?? '';
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+                if (valA < valB) return sortOrder === 'DESC' ? 1 : -1;
+                if (valA > valB) return sortOrder === 'DESC' ? -1 : 1;
+                return 0;
+              });
+            }
+            return filtered;
+          })().map((prj) => {
             const assignedEmps = (Array.isArray(employees) ? employees : []).filter((e) => prj.assignedEmployeeIds?.includes(e.id));
             return (
               <div
