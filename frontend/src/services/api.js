@@ -484,6 +484,41 @@ const handleMockRequest = (method, url, data) => {
         assignedEmployeeIds: Array.isArray(data?.assignedEmployeeIds) ? data.assignedEmployeeIds : (existing.assignedEmployeeIds || [])
       };
       setStorage('projects', projects);
+
+      if (Array.isArray(data?.initialTasks) && data.initialTasks.length > 0) {
+        const currentTasks = getStorage('tasks', defaultTasks);
+        data.initialTasks.forEach((t, idx) => {
+          if (t.title && t.title.trim()) {
+            const maxTaskNum = currentTasks.reduce((max, taskItem) => {
+              const num = parseInt((taskItem.taskNumber || '').replace('TSK-', '')) || 0;
+              return num > max ? num : max;
+            }, 1000);
+
+            const empId = t.assignedEmployeeId ? Number(t.assignedEmployeeId) : (projects[index].assignedEmployeeIds?.[0] || null);
+            const emp = empId ? employees.find(e => Number(e.id) === Number(empId)) : null;
+
+            currentTasks.push({
+              id: Date.now() + idx + 1,
+              taskNumber: `TSK-${maxTaskNum + 1}`,
+              title: t.title.trim(),
+              description: t.description || `Task deliverable for project: ${projects[index].name}`,
+              projectId: projects[index].id,
+              projectName: projects[index].name,
+              assignedEmployeeId: empId,
+              assignedEmployeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
+              employeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
+              priority: t.priority || 'HIGH',
+              status: 'TODO',
+              progress: 0,
+              dueDate: projects[index].deadline || '2026-12-31',
+              remarks: 'Project deliverable'
+            });
+          }
+        });
+        setStorage('tasks', currentTasks);
+        syncProjectFromTasks(projects[index].id);
+      }
+
       return { status: 200, data: projects[index] };
     }
   }

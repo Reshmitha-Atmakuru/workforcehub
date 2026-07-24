@@ -157,6 +157,8 @@ export default function Projects() {
     setSelectedPrj(prj);
     setMemberSearch('');
     setAppliedMemberSearch('');
+    setInitialTasks([]);
+    setCustomTaskTitle('');
     setFormData({
       name: prj.name || '',
       description: prj.description || '',
@@ -174,24 +176,34 @@ export default function Projects() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
+      // Include any custom task title typed in box if user didn't click + Add Task button
+      let finalTasks = [...initialTasks];
+      if (customTaskTitle && customTaskTitle.trim()) {
+        finalTasks.push({
+          title: customTaskTitle.trim(),
+          assignedEmployeeId: formData.assignedEmployeeIds[0] || '',
+          priority: 'HIGH',
+        });
+      }
+
+      const sanitizedTasks = finalTasks.map(t => ({
+        ...t,
+        assignedEmployeeId: t.assignedEmployeeId ? Number(t.assignedEmployeeId) : null,
+      }));
+
       if (selectedPrj) {
-        await API.put(`/projects/${selectedPrj.id}`, formData);
+        await API.put(`/projects/${selectedPrj.id}`, { ...formData, initialTasks: sanitizedTasks });
       } else {
-        // Sanitize initialTasks: convert empty assignedEmployeeId to null for backend compatibility
-        const sanitizedTasks = initialTasks.map(t => ({
-          ...t,
-          assignedEmployeeId: t.assignedEmployeeId ? Number(t.assignedEmployeeId) : null,
-        }));
         await API.post('/projects', { ...formData, initialTasks: sanitizedTasks });
-        // Reset filters when adding a new project so it appears immediately
         setSearch('');
         setDepartment('All');
         setStatus('All');
         setPriority('All');
-        // Notify other pages (Tasks, Dashboard) that new data is available
-        window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'project-created' } }));
       }
       setIsModalOpen(false);
+      setInitialTasks([]);
+      setCustomTaskTitle('');
+      window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'project-saved' } }));
       await fetchData();
     } catch (err) {
       console.error('Error saving project:', err);
@@ -661,13 +673,12 @@ export default function Projects() {
             </div>
           </div>
 
-          {/* Initial Tasks & Deliverables Configuration (for New Projects) */}
-          {!selectedPrj && (
-            <div className="space-y-3 pt-3 border-t border-slate-800">
-              <div>
-                <label className="block text-xs font-semibold text-white mb-0.5">Project Initial Tasks & Deliverables</label>
-                <p className="text-[11px] text-slate-400">Add tasks directly during project creation using quick options or typing manually.</p>
-              </div>
+          {/* Tasks & Deliverables Configuration */}
+          <div className="space-y-3 pt-3 border-t border-slate-800">
+            <div>
+              <label className="block text-xs font-semibold text-white mb-0.5">Project Tasks & Deliverables</label>
+              <p className="text-[11px] text-slate-400">Add tasks directly using quick options or typing manually below.</p>
+            </div>
 
               {/* Task Presets */}
               <div>
@@ -767,7 +778,6 @@ export default function Projects() {
                 </div>
               )}
             </div>
-          )}
 
           <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
             <button
