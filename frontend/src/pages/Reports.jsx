@@ -182,7 +182,7 @@ export default function Reports() {
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Employee Productivity Report</span>
+            <span>Employee-wise Task Report</span>
           </button>
         )}
 
@@ -195,7 +195,7 @@ export default function Reports() {
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          <span>Project Portfolio Health</span>
+          <span>Project Progress Report</span>
         </button>
 
         <button
@@ -207,7 +207,7 @@ export default function Reports() {
           }`}
         >
           <CheckSquare className="w-4 h-4" />
-          <span>Task Status Breakdown</span>
+          <span>Pending Task Report</span>
         </button>
       </div>
 

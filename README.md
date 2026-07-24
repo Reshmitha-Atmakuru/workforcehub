@@ -369,14 +369,20 @@ ProjectRepository.save() persists updated project
 
 ---
 
-## 📊 Productivity Reports & Exports (PDF & Excel)
+## 📊 Reports & Analytics (PDF & Excel Exports)
 
-WorkforceHub supports automated report generation and direct exports in both **PDF** and **Excel (.xlsx)** formats. The generated report files are committed and available directly in the repository:
+WorkforceHub provides three comprehensive report modules with automated **PDF** and **Excel (.xlsx)** export capabilities:
+
+1. 👥 **Employee-wise Task Report**: Aggregates task distribution, completed counts, pending items, and completion percentages per employee.
+2. 📁 **Project Progress Report**: Tracks real-time project progress percentages, completion status, department scopes, and budgets.
+3. ✅ **Pending Task Report**: Filters all active tasks requiring action, detailing assignees, project scopes, priorities, and deadlines.
+
+### 📄 Exported Report Deliverables
 
 - 📄 **PDF Report File**: [`WorkforceHub_productivity_Report.pdf`](WorkforceHub_productivity_Report.pdf) (or [`WorkforceHub_productivity_Report (1).pdf`](<WorkforceHub_productivity_Report (1).pdf>))
 - 📊 **Excel Spreadsheet**: [`Workforce_Employee_Productivity_Report.xlsx`](Workforce_Employee_Productivity_Report.xlsx) (or [`Workforce_Employee_Productivity_Report (1).xlsx`](<Workforce_Employee_Productivity_Report (1).xlsx>))
 
-### 📋 Exported Employee Productivity Report Data
+### 📋 1. Employee-wise Task Report Data Preview
 
 | Employee Code | Employee Name | Department | Total Assigned | Pending | Completed | Completion Rate |
 |---|---|---|---|---|---|---|
@@ -386,6 +392,14 @@ WorkforceHub supports automated report generation and direct exports in both **P
 | `EMP-1004` | Sarah Jenkins | Product | 1 | 1 | 0 | 0% |
 | `EMP-1005` | Kumar Varma | Finance | 1 | 0 | 1 | **100%** |
 | `EMP-1006` | Krishna K | Human Resources | 5 | 5 | 0 | 0% |
+
+### 📋 2. Project Progress Report Data Preview
+
+| Project Code | Project Name | Department | Status | Budget | Deadline | Progress % |
+|---|---|---|---|---|---|---|
+| `PRJ-101` | Enterprise Cloud Migration | Engineering | In Progress | ₹1,200,000 | 2026-08-30 | 0% |
+| `PRJ-102` | Smart Workforce Portal | Product | In Progress | ₹850,000 | 2026-07-31 | **50%** |
+| `PRJ-103` | Automated Payroll System | Finance | Not Started | ₹500,000 | 2026-11-30 | 0% |
 
 ---
 
