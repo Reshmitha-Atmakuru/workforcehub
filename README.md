@@ -681,8 +681,11 @@ WorkforceHub provides three comprehensive report modules with automated **PDF** 
 
 ### 📄 Exported Report Deliverables
 
-- 📄 **PDF Report File**: [`WorkforceHub_productivity_Report.pdf`](WorkforceHub_productivity_Report.pdf) (or [`WorkforceHub_productivity_Report (1).pdf`](<WorkforceHub_productivity_Report (1).pdf>))
-- 📊 **Excel Spreadsheet**: [`Workforce_Employee_Productivity_Report.xlsx`](Workforce_Employee_Productivity_Report.xlsx) (or [`Workforce_Employee_Productivity_Report (1).xlsx`](<Workforce_Employee_Productivity_Report (1).xlsx>))
+- 📄 **PDF Report File**: [`WorkforceHub_productivity_Report.pdf`](WorkforceHub_productivity_Report.pdf)
+- 📊 **Excel Spreadsheets**:
+  - 👥 [`Workforce_Employee_Productivity_Report.xlsx`](Workforce_Employee_Productivity_Report.xlsx)
+  - 📁 [`Workforce_Project_Portfolio_Health_Report.xlsx`](Workforce_Project_Portfolio_Health_Report.xlsx)
+  - ✅ [`Workforce_Task_Status_Report.xlsx`](Workforce_Task_Status_Report.xlsx)
 
 ### 📋 1. Employee-wise Task Report Data Preview
 
