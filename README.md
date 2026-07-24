@@ -279,6 +279,97 @@ This starts MySQL + Spring Boot in containers automatically.
 
 ---
 
+## 🗄️ Database Scripting & Schema Architecture
+
+The database initialization and schema scripts are located in [`database.sql`](database.sql) (Root) and [`backend/database.sql`](backend/database.sql).
+
+### 📐 Relational Database Schema Overview
+
+```
+                          ┌──────────────┐
+                          │    users     │
+                          └──────┬───────┘
+                                 │ 1:1 / 1:N
+                                 ▼
+┌──────────────────┐ 1:N  ┌──────────────┐ 1:N  ┌──────────────┐
+│   departments    │◄─────│  employees   │◄─────│    tasks     │
+└──────────────────┘      └──────┬───────┘      └──────▲───────┘
+                                 │ 1:N                 │ N:1
+                                 ▼                     │
+                          ┌──────────────┐             │
+                          │emp_skills    │             │
+                          └──────────────┘      ┌──────┴───────┐
+                                                │   projects   │
+                                                └──────────────┘
+```
+
+### 📋 Database Tables & DDL Script Breakdown
+
+| Table Name | Primary Key | Key Foreign Keys | Purpose |
+|---|---|---|---|
+| `users` | `id` (BIGINT) | — | User authentication accounts, roles (`ROLE_ADMIN`, `ROLE_EMPLOYEE`, `ROLE_MANAGER`, `ROLE_HR`), BCrypt password hashes |
+| `employees` | `id` (BIGINT) | `user_id` ➔ `users(id)` | Employee directory records, job titles, department assignments, salary, contact info |
+| `employee_skills` | — | `employee_id` ➔ `employees(id)` | Element collection table storing employee technical skills |
+| `projects` | `id` (BIGINT) | — | Enterprise projects, budget, priority, status, auto-calculated progress % |
+| `tasks` | `id` (BIGINT) | `project_id` ➔ `projects(id)`, `employee_id` ➔ `employees(id)` | Task deliverables, assignees, progress %, due dates, remarks |
+| `departments` | `id` (BIGINT) | — | Organizational department structures, budgets, locations |
+| `audit_logs` | `id` (BIGINT) | — | Immutable audit trail logging user mutations (`CREATE`, `UPDATE`, `DELETE`, `LOGIN`) |
+
+### 💻 Sample Database Initialization Script (`database.sql`)
+
+```sql
+-- Database Initialization Script
+CREATE DATABASE IF NOT EXISTS `workforce_hub` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `workforce_hub`;
+
+-- 1. Users Table
+CREATE TABLE `users` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL UNIQUE,
+  `email` VARCHAR(100) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL,
+  `first_name` VARCHAR(50) NOT NULL,
+  `last_name` VARCHAR(50) NOT NULL,
+  `role` VARCHAR(20) NOT NULL DEFAULT 'ROLE_EMPLOYEE',
+  `department` VARCHAR(50) DEFAULT 'General',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 2. Projects Table
+CREATE TABLE `projects` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `code` VARCHAR(30) NOT NULL UNIQUE,
+  `name` VARCHAR(100) NOT NULL,
+  `department` VARCHAR(50) NOT NULL,
+  `priority` VARCHAR(20) DEFAULT 'MEDIUM',
+  `status` VARCHAR(30) DEFAULT 'In Progress',
+  `progress` INT DEFAULT 0,
+  `budget` DECIMAL(12,2) DEFAULT NULL,
+  `deadline` DATE DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3. Tasks Table
+CREATE TABLE `tasks` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT,
+  `task_number` VARCHAR(30) DEFAULT NULL,
+  `title` VARCHAR(150) NOT NULL,
+  `project_id` BIGINT DEFAULT NULL,
+  `employee_id` BIGINT DEFAULT NULL,
+  `priority` VARCHAR(20) DEFAULT 'MEDIUM',
+  `status` VARCHAR(20) DEFAULT 'TODO',
+  `progress` INT DEFAULT 0,
+  `due_date` DATE DEFAULT NULL,
+  `remarks` VARCHAR(500) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_tasks_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_tasks_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
 ## 🔄 System Architecture & Flowchart
 
 ```mermaid
