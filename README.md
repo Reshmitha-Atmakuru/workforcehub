@@ -667,6 +667,10 @@ flowchart LR
 | ![Audit Logs](screenshots/Audittrails.png) | Audit Trail |
 | ![Task Management Admin](screenshots/TaskManagementAdmin.png) | Task Management — Admin View |
 | ![Task Management Employee](screenshots/TaskManagementEmployee.png) | Task Management — Employee View |
+| ![Swagger OpenAPI - Directory & Projects](screenshots/swagger_ui_1.png) | Swagger OpenAPI UI — Employee Directory & Project Management APIs |
+| ![Swagger OpenAPI - Tasks, Auth & Audit](screenshots/swagger_ui_2.png) | Swagger OpenAPI UI — Tasks, Auth, User Profile & Audit Logs |
+| ![Swagger OpenAPI - Controllers Overview](screenshots/swagger_ui_3.png) | Swagger OpenAPI UI — Leave, Department, Attendance & Reports |
+| ![Swagger OpenAPI - DTO Schemas](screenshots/swagger_ui_schemas.png) | Swagger OpenAPI UI — Data Schemas & DTO Models |
 | ![System Flowchart](screenshots/system_flowchart.png) | Architecture Flowchart |
 
 ---
