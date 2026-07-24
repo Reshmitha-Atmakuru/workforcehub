@@ -109,10 +109,11 @@ export default function Tasks() {
 
   const handleOpenAdd = () => {
     setSelectedTask(null);
+    const defaultProjId = (projectId && projectId !== 'All') ? projectId : (projects[0]?.id || '');
     setFormData({
       title: '',
       description: '',
-      projectId: projects[0]?.id || '',
+      projectId: defaultProjId,
       assignedEmployeeId: employees[0]?.id || '',
       priority: 'HIGH',
       status: 'TODO',
@@ -253,7 +254,36 @@ export default function Tasks() {
         {loading ? (
           <div className="p-8 text-center text-slate-400 text-xs">Loading task registry...</div>
         ) : !Array.isArray(tasks) || tasks.length === 0 ? (
-          <div className="p-8 text-center text-slate-400 text-xs">No tasks found.</div>
+          <div className="p-12 text-center text-slate-400">
+            <CheckSquare className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+            <h3 className="text-sm font-bold text-white mb-1">
+              {projectId !== 'All' ? 'No tasks found for the selected project' : 'No tasks found'}
+            </h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto mb-4">
+              {projectId !== 'All' 
+                ? 'This project currently has no assigned tasks matching your filters.' 
+                : 'There are no deliverables matching your current search and filter settings.'}
+            </p>
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              {projectId !== 'All' && (
+                <button
+                  onClick={() => setProjectId('All')}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  View All Tasks Across All Projects
+                </button>
+              )}
+              {canManageTasks && (
+                <button
+                  onClick={handleOpenAdd}
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>+ Create Task for this Project</span>
+                </button>
+              )}
+            </div>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -272,8 +302,8 @@ export default function Tasks() {
               </thead>
               <tbody className="divide-y divide-slate-800/80 text-xs text-slate-300">
                 {(Array.isArray(tasks) ? tasks : []).map((task) => {
-                  const prj = (Array.isArray(projects) ? projects : []).find((p) => p.id === task.projectId);
-                  const emp = (Array.isArray(employees) ? employees : []).find((e) => e.id === task.assignedEmployeeId);
+                  const prj = (Array.isArray(projects) ? projects : []).find((p) => Number(p.id) === Number(task.projectId));
+                  const emp = (Array.isArray(employees) ? employees : []).find((e) => Number(e.id) === Number(task.assignedEmployeeId));
                   return (
                     <tr key={task.id} className="hover:bg-slate-800/40 transition-colors">
                       <td className="py-3.5 px-4 font-mono font-bold text-blue-400">

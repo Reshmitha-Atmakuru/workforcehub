@@ -407,8 +407,9 @@ const handleMockRequest = (method, url, data) => {
       const num = parseInt((p.code || '').replace(/[^0-9]/g, '')) || 0;
       return num > max ? num : max;
     }, 100);
+    const maxPrjId = projects.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0);
     const newPrj = {
-      id: Date.now(),
+      id: maxPrjId + 1,
       code: `PRJ-${maxCodeNum + 1}`,
       name: data?.name || 'New Project',
       description: data?.description || '',
