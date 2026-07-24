@@ -372,73 +372,282 @@ CREATE TABLE `tasks` (
 
 ## 🔄 System Architecture & Flowchart
 
+### 🏛️ 1. High-Level System Architecture
+
 ```mermaid
-graph TD
-    AdminUser([👤 Admin / Manager / HR]) --> FE
-    EmpUser([👤 Employee]) --> FE
+graph TB
+    subgraph CLIENT["🖥️ Client Layer"]
+        direction LR
+        ADMIN_USR(["👨‍💼 Admin / Manager / HR"])
+        EMP_USR(["👨‍💻 Employee"])
+    end
 
-    FE[React 19 Frontend<br/>Vite + TailwindCSS] --> JWT
+    subgraph FRONTEND["⚛️ Frontend — React 19 + Vite"]
+        direction TB
+        UI_AUTH["🔑 Login / Auth Pages"]
+        UI_ADMIN["📊 Admin Dashboard\nEmployee · Project · Task Mgmt\nReports · Audit Logs · Leave"]
+        UI_EMP["🗂️ Employee Portal\nMy Tasks · Kanban · Profile\nLeave Requests · My Projects"]
+    end
 
-    JWT[🔐 JWT Authentication Filter<br/>HMAC-SHA512] -->|Valid Token| RBAC
+    subgraph SECURITY["🔐 Security Layer — Spring Security 6"]
+        JWT_FILTER["JWT Authentication Filter\nHMAC-SHA512 Token Validation"]
+        RBAC{{"⚖️ RBAC\nRole-Based Access Control"}}
+    end
 
-    RBAC{Role Check}
-    RBAC -->|ADMIN / MANAGER / HR| ADMIN_VIEW
-    RBAC -->|EMPLOYEE| EMP_VIEW
+    subgraph BACKEND["☕ Backend — Spring Boot 3.2"]
+        direction TB
+        CTRL["🌐 REST Controllers\n/api/auth · /api/employees\n/api/projects · /api/tasks\n/api/reports · /api/audit-logs\n/api/leaves · /api/departments"]
+        SVC["⚙️ Service Layer\nBusiness Logic & Validation\nAuto-Progress Engine\nAudit Log Writer"]
+        REPO["📦 Repository Layer\nSpring Data JPA / Hibernate"]
+    end
 
-    ADMIN_VIEW[Admin Dashboard<br/>Employee Mgmt · Project Mgmt<br/>Task Mgmt · Reports · Audit Logs]
-    EMP_VIEW[Employee Dashboard<br/>My Tasks · My Projects<br/>Kanban · Profile]
+    subgraph DB["🗄️ MySQL 8.0 — workforce_hub"]
+        direction LR
+        T_USERS[("users")]
+        T_EMP[("employees")]
+        T_PROJ[("projects")]
+        T_TASKS[("tasks")]
+        T_DEPT[("departments")]
+        T_AUDIT[("audit_logs")]
+        T_LEAVE[("leave_requests")]
+    end
 
-    ADMIN_VIEW --> API
-    EMP_VIEW --> API
-
-    API[🌐 REST API Layer<br/>Spring Boot 3.2 Controllers]
-
-    API --> SVC[⚙️ Service Layer<br/>Business Logic]
-
-    SVC --> REPO[🗄️ Repository Layer<br/>Spring Data JPA]
-
-    REPO --> DB[(MySQL 8.0<br/>workforce_hub)]
-
-    DB --> T1[(users)]
-    DB --> T2[(employees)]
-    DB --> T3[(projects)]
-    DB --> T4[(tasks)]
-    DB --> T5[(audit_logs)]
-
-    SVC -->|Task Complete| PROGRESS[📊 Auto Project Progress<br/>Recalculation]
-    PROGRESS --> REPO
+    ADMIN_USR --> UI_AUTH
+    EMP_USR --> UI_AUTH
+    UI_AUTH --> JWT_FILTER
+    UI_ADMIN --> JWT_FILTER
+    UI_EMP --> JWT_FILTER
+    JWT_FILTER --> RBAC
+    RBAC -->|"ADMIN / MANAGER / HR"| UI_ADMIN
+    RBAC -->|"EMPLOYEE"| UI_EMP
+    UI_ADMIN --> CTRL
+    UI_EMP --> CTRL
+    CTRL --> SVC
+    SVC --> REPO
+    REPO --> T_USERS & T_EMP & T_PROJ & T_TASKS & T_DEPT & T_AUDIT & T_LEAVE
 ```
 
-### Authentication Flow
-```
-User submits credentials → POST /api/auth/login
-      ↓
-BCrypt password verification
-      ↓
-JWT token generated (24h expiry, HMAC-SHA512)
-      ↓
-Token returned to client → stored in localStorage
-      ↓
-All subsequent API requests → Authorization: Bearer <token>
-      ↓
-JwtAuthenticationFilter validates token on every request
-      ↓
-User roles & permissions loaded into SecurityContext
+---
+
+### 🔐 2. Authentication & JWT Token Flow
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant FE as React Frontend
+    participant AUTH as AuthController<br/>/api/auth/login
+    participant SEC as Spring Security<br/>BCrypt Verifier
+    participant JWT as JwtService<br/>HMAC-SHA512
+    participant DB as MySQL<br/>users table
+
+    User->>FE: Enter email + password
+    FE->>AUTH: POST /api/auth/login<br/>{ email, password }
+    AUTH->>DB: SELECT user WHERE email = ?
+    DB-->>AUTH: User record + hashed password
+    AUTH->>SEC: matches(inputPassword, storedHash)
+    SEC-->>AUTH: ✅ Password valid
+    AUTH->>JWT: generateToken(username, role, 24h)
+    JWT-->>AUTH: Signed JWT Token (HMAC-SHA512)
+    AUTH-->>FE: 200 OK { token, role, username }
+    FE->>FE: Store token in localStorage
+
+    Note over FE,JWT: Every subsequent API call...
+
+    FE->>AUTH: GET /api/employees<br/>Authorization: Bearer <token>
+    AUTH->>JWT: validateToken(token)
+    JWT-->>AUTH: ✅ Valid — username + role
+    AUTH-->>FE: 200 OK — Employee List
 ```
 
-### Project-Task Auto-Progress Flow
+---
+
+### 🎭 3. Role-Based Access Control (RBAC) Matrix
+
+```mermaid
+graph LR
+    subgraph ROLES["User Roles"]
+        R1(["👑 ROLE_ADMIN"])
+        R2(["📋 ROLE_MANAGER"])
+        R3(["🧑‍💼 ROLE_HR"])
+        R4(["👨‍💻 ROLE_EMPLOYEE"])
+    end
+
+    subgraph PERMISSIONS["Access Permissions"]
+        P1["Manage All Employees"]
+        P2["Manage Projects & Tasks"]
+        P3["View All Reports"]
+        P4["View Audit Logs"]
+        P5["Manage Departments"]
+        P6["Approve Leave Requests"]
+        P7["View Own Tasks Only"]
+        P8["Update Own Task Status"]
+        P9["Submit Leave Request"]
+        P10["View Own Profile"]
+    end
+
+    R1 --> P1 & P2 & P3 & P4 & P5 & P6
+    R2 --> P2 & P3 & P6
+    R3 --> P1 & P3 & P5 & P6
+    R4 --> P7 & P8 & P9 & P10
 ```
-Task status updated to COMPLETED
-      ↓
-TaskService.updateTask() triggers syncProjectProgress()
-      ↓
-Count: completedTasks / totalTasks for that project
-      ↓
-project.progress = (completedTasks / totalTasks) * 100
-      ↓
-If progress == 100 → project.status = "Completed"
-      ↓
-ProjectRepository.save() persists updated project
+
+---
+
+### 🗃️ 4. Database Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    USERS {
+        BIGINT id PK
+        VARCHAR username UK
+        VARCHAR email UK
+        VARCHAR password
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR role
+        VARCHAR department
+        DATETIME created_at
+    }
+
+    EMPLOYEES {
+        BIGINT id PK
+        VARCHAR code UK
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR email UK
+        VARCHAR phone
+        VARCHAR department
+        VARCHAR job_title
+        VARCHAR account_role
+        DECIMAL salary
+        DATE join_date
+        VARCHAR status
+        BIGINT user_id FK
+    }
+
+    EMPLOYEE_SKILLS {
+        BIGINT employee_id FK
+        VARCHAR skill
+    }
+
+    PROJECTS {
+        BIGINT id PK
+        VARCHAR code UK
+        VARCHAR name
+        VARCHAR department
+        VARCHAR priority
+        VARCHAR status
+        INT progress
+        DECIMAL budget
+        DATE start_date
+        DATE deadline
+    }
+
+    TASKS {
+        BIGINT id PK
+        VARCHAR task_number
+        VARCHAR title
+        VARCHAR description
+        BIGINT project_id FK
+        BIGINT employee_id FK
+        VARCHAR priority
+        VARCHAR status
+        INT progress
+        DATE due_date
+        VARCHAR remarks
+    }
+
+    DEPARTMENTS {
+        BIGINT id PK
+        VARCHAR code UK
+        VARCHAR name
+        VARCHAR description
+        VARCHAR location
+        DECIMAL budget
+    }
+
+    AUDIT_LOGS {
+        BIGINT id PK
+        DATETIME timestamp
+        VARCHAR action
+        VARCHAR entity_type
+        VARCHAR entity_id
+        VARCHAR performed_by
+        TEXT details
+    }
+
+    USERS ||--o| EMPLOYEES : "linked account"
+    EMPLOYEES ||--o{ EMPLOYEE_SKILLS : "has skills"
+    EMPLOYEES ||--o{ TASKS : "assigned to"
+    PROJECTS ||--o{ TASKS : "contains"
+```
+
+---
+
+### ⚡ 5. Task Completion → Auto Project Progress Engine
+
+```mermaid
+flowchart TD
+    A(["👨‍💻 Employee / Admin"]) -->|"Updates Task Status"| B
+
+    B["PUT /api/tasks/{id}\n{ status: COMPLETED, progress: 100 }"]
+    B --> C["TaskService.updateTask()"]
+    C --> D["Save task to DB\nTaskRepository.save()"]
+    D --> E{"Is task assigned\nto a project?"}
+
+    E -->|"No"| F(["✅ Task saved — no project update"])
+    E -->|"Yes"| G["syncProjectProgress(projectId)"]
+
+    G --> H["Count all tasks\nfor this project"]
+    H --> I["Count COMPLETED\ntasks for this project"]
+    I --> J["progress = completed / total × 100"]
+
+    J --> K{"progress == 100?"}
+    K -->|"Yes"| L["Set project.status\n= 'Completed' ✅"]
+    K -->|"No"| M["Keep project.status\nas 'In Progress'"]
+
+    L --> N["ProjectRepository.save()"]
+    M --> N
+    N --> O["AuditLogService.log()\nACTION: TASK_UPDATED"]
+    O --> P(["📊 Dashboard KPIs auto-updated\nProject progress bar refreshed"])
+```
+
+---
+
+### 🔁 6. Full Request Lifecycle
+
+```mermaid
+flowchart LR
+    A(["🌐 HTTP Request"]) --> B
+
+    subgraph SPRING_CHAIN["Spring Boot Filter Chain"]
+        B["CorsFilter\nAllow React localhost:3000"]
+        B --> C["JwtAuthenticationFilter\nExtract Bearer Token"]
+        C --> D{"Token\nValid?"}
+        D -->|"❌ Invalid / Missing"| E["401 Unauthorized"]
+        D -->|"✅ Valid"| F["Load UserDetails\nSet SecurityContext"]
+    end
+
+    F --> G
+
+    subgraph CONTROLLER["REST Controller Layer"]
+        G["@RestController\nRoute matching + request mapping"]
+        G --> H["@PreAuthorize\nRole permission check"]
+        H --> I{"Authorized?"}
+        I -->|"❌ Forbidden"| J["403 Forbidden"]
+        I -->|"✅ Allowed"| K["Call Service method"]
+    end
+
+    K --> L
+
+    subgraph SERVICE["Service + Repository Layer"]
+        L["Service: Business Logic\nValidation · Calculation"]
+        L --> M["JPA Repository\nHibernate ORM Query"]
+        M --> N[("MySQL 8.0\nworkforce_hub")]
+    end
+
+    N --> O["Build Response DTO"]
+    O --> P(["📦 JSON Response\n200 OK / 201 Created"])
 ```
 
 ---
