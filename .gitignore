@@ -1,0 +1,81 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ─── Java / Maven ───────────────────────────────────────────────
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+.mvn/wrapper/maven-wrapper.jar
+
+# ─── Spring Boot / IDE ──────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+*.eclipse
+.springBeans
+.sts4-cache/
+.factorypath
+
+# ─── VS Code ────────────────────────────────────────────────────
+.vscode/
+
+# ─── Node / Frontend ────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.parcel-cache/
+.cache/
+.turbo/
+.next/
+
+# ─── Environment / Secrets ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.local
+
+# ─── Logs ───────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── OS generated ───────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Docker data volumes ─────────────────────────────────────────
+backend/data/
+
+# ─── Uploaded files (runtime) ────────────────────────────────────
+backend/uploads/
+backend/test_avatar.jpg
+
+# ─── Misc ────────────────────────────────────────────────────────
+coverage/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+metadata.json

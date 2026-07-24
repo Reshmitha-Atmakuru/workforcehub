@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+/* ─────────────── CSS Custom Properties ─────────────── */
+:root {
+  /* Dark theme (default) */
+  --bg-primary: #0b1329;
+  --bg-surface: #0f172a;
+  --bg-card: #111827;
+  --bg-input: #131d38;
+  --border-color: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --scrollbar-track: #0f172a;
+  --scrollbar-thumb: #334155;
+  --scrollbar-thumb-hover: #475569;
+}
+
+/* Light theme overrides – applied when html does NOT have 'dark' class */
+html:not(.dark) {
+  --bg-primary: #f1f5f9;
+  --bg-surface: #e2e8f0;
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --border-color: #cbd5e1;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --scrollbar-track: #e2e8f0;
+  --scrollbar-thumb: #94a3b8;
+  --scrollbar-thumb-hover: #64748b;
+}
+
+/* ─────────────── Global Base ─────────────── */
+@layer base {
+  html {
+    /* Smooth transitions for ALL color properties when theme toggles */
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Transition every element so color/bg changes are smooth on theme switch */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+  }
+}
+
+/* ─────────────── Light Mode Overrides ─────────────── */
+html:not(.dark) {
+  /* Navbar/Header */
+  header {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Sidebar */
+  aside, nav {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Cards */
+  .bg-\[\#0f172a\], .bg-\[\#131d38\], .bg-\[\#111827\], .bg-\[\#131c35\], .bg-\[\#121c38\], .bg-\[\#0b1329\] {
+    background-color: #ffffff !important;
+  }
+
+  /* Input fields */
+  input, select, textarea {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  /* Text overrides */
+  .text-white { color: #0f172a !important; }
+  .text-slate-100 { color: #1e293b !important; }
+  .text-slate-200 { color: #334155 !important; }
+  .text-slate-300 { color: #475569 !important; }
+  .text-slate-400 { color: #64748b !important; }
+
+  /* Borders */
+  .border-slate-800, .border-slate-700 { border-color: #e2e8f0 !important; }
+  .divide-slate-800 > * + * { border-color: #e2e8f0 !important; }
+
+  /* Tables */
+  table { background-color: #ffffff !important; }
+  thead { background-color: #f8fafc !important; }
+  tbody tr { border-color: #e2e8f0 !important; }
+  tbody tr:hover { background-color: #f1f5f9 !important; }
+
+  /* Modals */
+  .modal-content, [role="dialog"] {
+    background-color: #ffffff !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  /* Gradient backgrounds become softer */
+  .bg-gradient-to-r, .bg-gradient-to-br {
+    --tw-gradient-from: #f1f5f9;
+    --tw-gradient-to: #e2e8f0;
+  }
+}
+
+/* ─────────────── Scrollbar ─────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* ─────────────── Animations ─────────────── */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease forwards;
+}
