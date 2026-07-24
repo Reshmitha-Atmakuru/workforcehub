@@ -144,7 +144,7 @@ Before starting, ensure you have installed:
 ### Step 1 — Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/workforcehub.git
+git clone https://github.com/Reshmitha-Atmakuru/workforcehub.git
 cd workforcehub
 ```
 
