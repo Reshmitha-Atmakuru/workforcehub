@@ -27,12 +27,14 @@ public class TaskServiceImpl implements TaskService {
     private final EmailService emailService;
 
     @Override
-    public List<TaskDto> getAllTasks(String search, String status, String priority) {
+    public List<TaskDto> getAllTasks(String search, Long projectId, Long assignedEmployeeId, String status, String priority) {
         String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
-        String statusParam = (status != null && !status.equals("ALL")) ? status : null;
-        String priorityParam = (priority != null && !priority.equals("ALL")) ? priority : null;
+        Long projIdParam = (projectId != null && projectId > 0) ? projectId : null;
+        Long empIdParam = (assignedEmployeeId != null && assignedEmployeeId > 0) ? assignedEmployeeId : null;
+        String statusParam = (status != null && !status.equalsIgnoreCase("ALL")) ? status : null;
+        String priorityParam = (priority != null && !priority.equalsIgnoreCase("ALL")) ? priority : null;
 
-        return taskRepository.searchTasks(searchParam, statusParam, priorityParam)
+        return taskRepository.searchTasks(searchParam, projIdParam, empIdParam, statusParam, priorityParam)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());

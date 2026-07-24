@@ -14,11 +14,15 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByAssignedEmployeeId(Long employeeId);
 
     @Query("SELECT t FROM Task t WHERE " +
-           "(:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.taskNumber) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
-           "(:status IS NULL OR t.status = :status) AND " +
-           "(:priority IS NULL OR t.priority = :priority)")
+           "(:search IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.taskNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "(:projectId IS NULL OR t.project.id = :projectId) AND " +
+           "(:assignedEmployeeId IS NULL OR t.assignedEmployee.id = :assignedEmployeeId) AND " +
+           "(:status IS NULL OR UPPER(t.status) = UPPER(:status)) AND " +
+           "(:priority IS NULL OR UPPER(t.priority) = UPPER(:priority))")
     List<Task> searchTasks(
             @Param("search") String search,
+            @Param("projectId") Long projectId,
+            @Param("assignedEmployeeId") Long assignedEmployeeId,
             @Param("status") String status,
             @Param("priority") String priority);
 }

@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
             User admin = User.builder()
                     .username("admin")
                     .email("admin@workforcehub.com")
-                    .password(passwordEncoder.encode("admin123"))
+                    .password(passwordEncoder.encode("password123"))
                     .role(Role.ROLE_ADMIN)
                     .department("Management")
                     .firstName("Admin")

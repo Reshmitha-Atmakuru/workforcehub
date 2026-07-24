@@ -343,6 +343,8 @@ ProjectRepository.save() persists updated project
 | ![Kanban Board](screenshots/EmployeeKanban.png) | Employee Kanban Board |
 | ![Reports](screenshots/ReportsAndAnalytics.png) | Reports & Analytics |
 | ![Audit Logs](screenshots/Audittrails.png) | Audit Trail |
+| ![Task Management Admin](screenshots/TaskManagementAdmin.png) | Task Management — Admin View |
+| ![Task Management Employee](screenshots/TaskManagementEmployee.png) | Task Management — Employee View |
 | ![System Flowchart](screenshots/system_flowchart.png) | Architecture Flowchart |
 
 ---

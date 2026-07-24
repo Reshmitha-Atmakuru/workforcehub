@@ -23,12 +23,14 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    @Operation(summary = "Get All Tasks", description = "Retrieves all deliverable tasks with search, status, and priority filters")
+    @Operation(summary = "Get All Tasks", description = "Retrieves all deliverable tasks with search, project, assigned employee, status, and priority filters")
     public ResponseEntity<List<TaskDto>> getAllTasks(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) Long assignedEmployeeId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority) {
-        return ResponseEntity.ok(taskService.getAllTasks(search, status, priority));
+        return ResponseEntity.ok(taskService.getAllTasks(search, projectId, assignedEmployeeId, status, priority));
     }
 
     @GetMapping("/{id}")

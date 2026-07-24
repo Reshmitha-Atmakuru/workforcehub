@@ -151,7 +151,7 @@ export default function Tasks() {
       setIsModalOpen(false);
       // Notify Dashboard and other pages to refresh
       window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'task-saved' } }));
-      fetchData();
+      await fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Error saving task');
     }

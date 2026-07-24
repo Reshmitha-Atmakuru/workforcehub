@@ -1,18 +1,174 @@
 import axios from 'axios';
 
 // ─── Data version: bump this to wipe stale localStorage on next load ───
-const DATA_VERSION = '3';
+const DATA_VERSION = '6';
 
-// Only the system admin is seeded. All other users must register.
+// Pre-seeded system users
 const defaultUsers = [
   { id: 1, username: 'admin', email: 'admin@workforcehub.com', firstName: 'Admin', lastName: 'User', role: 'ROLE_ADMIN', department: 'Management', password: 'admin123' },
+  { id: 2, username: 'kiran', email: 'kiran.reddy@workforcehub.com', firstName: 'Kiran', lastName: 'Reddy', role: 'ROLE_EMPLOYEE', department: 'Engineering', password: 'password123' },
+  { id: 3, username: 'priya', email: 'priya.sharma@workforcehub.com', firstName: 'Priya', lastName: 'Sharma', role: 'ROLE_MANAGER', department: 'Product & Design', password: 'password123' },
 ];
 
-// No pre-seeded employees, projects, tasks, or audit logs.
-const defaultEmployees = [];
-const defaultProjects   = [];
-const defaultTasks      = [];
-const defaultAuditLogs  = [];
+const defaultEmployees = [
+  { id: 1, code: 'EMP-1001', firstName: 'Kiran', lastName: 'Reddy', email: 'kiran.reddy@workforcehub.com', phone: '+91 98765 43210', department: 'Engineering', jobTitle: 'Full Stack Engineer', accountRole: 'ROLE_EMPLOYEE', salary: 1200000, joinDate: '2024-01-15', status: 'ACTIVE', officeLocation: 'Bengaluru, Karnataka', skills: 'React, Java, Spring Boot, MySQL' },
+  { id: 2, code: 'EMP-1002', firstName: 'Priya', lastName: 'Sharma', email: 'priya.sharma@workforcehub.com', phone: '+91 98765 43211', department: 'Product & Design', jobTitle: 'Product Manager', accountRole: 'ROLE_MANAGER', salary: 1800000, joinDate: '2023-06-01', status: 'ACTIVE', officeLocation: 'Bengaluru, Karnataka', skills: 'Product Strategy, Agile, UI/UX' },
+  { id: 3, code: 'EMP-1003', firstName: 'Rahul', lastName: 'Verma', email: 'rahul.verma@workforcehub.com', phone: '+91 98765 43212', department: 'Engineering', jobTitle: 'QA Specialist', accountRole: 'ROLE_EMPLOYEE', salary: 900000, joinDate: '2024-03-10', status: 'ACTIVE', officeLocation: 'Hyderabad, Telangana', skills: 'Selenium, Automated Testing, JUnit' }
+];
+
+const defaultProjects = [
+  {
+    id: 1,
+    code: 'PRJ-101',
+    name: 'Enterprise Cloud Migration',
+    description: 'Migration of core infrastructure to AWS cloud microservices.',
+    department: 'Engineering',
+    priority: 'HIGH',
+    status: 'In Progress',
+    progress: 67,
+    budget: 1500000,
+    startDate: '2026-01-10',
+    deadline: '2026-10-30',
+    assignedEmployeeIds: [1, 2],
+    totalTasks: 3,
+    completedTasks: 2,
+    pendingTasks: 1
+  },
+  {
+    id: 2,
+    code: 'PRJ-102',
+    name: 'E-Learning & Workforce Portal',
+    description: 'Employee learning management system and skill development platform.',
+    department: 'Product & Design',
+    priority: 'URGENT',
+    status: 'In Progress',
+    progress: 33,
+    budget: 800000,
+    startDate: '2026-02-01',
+    deadline: '2026-11-15',
+    assignedEmployeeIds: [1, 3],
+    totalTasks: 3,
+    completedTasks: 1,
+    pendingTasks: 2
+  },
+  {
+    id: 3,
+    code: 'PRJ-103',
+    name: 'Automated Payroll & Finance Hub',
+    description: 'Integrated payroll processing with automated tax compliance.',
+    department: 'Finance',
+    priority: 'MEDIUM',
+    status: 'In Progress',
+    progress: 0,
+    budget: 1200000,
+    startDate: '2026-03-01',
+    deadline: '2026-12-31',
+    assignedEmployeeIds: [2],
+    totalTasks: 2,
+    completedTasks: 0,
+    pendingTasks: 2
+  }
+];
+
+const defaultTasks = [
+  {
+    id: 1,
+    taskNumber: 'TSK-1001',
+    title: 'Architecture & Technical Specification',
+    description: 'Design system architecture, database schema, and microservice APIs.',
+    projectId: 1,
+    projectName: 'Enterprise Cloud Migration',
+    assignedEmployeeId: 1,
+    assignedEmployeeName: 'Kiran Reddy',
+    employeeName: 'Kiran Reddy',
+    priority: 'HIGH',
+    status: 'COMPLETED',
+    progress: 100,
+    dueDate: '2026-08-15',
+    remarks: 'Approved by lead architect.'
+  },
+  {
+    id: 2,
+    taskNumber: 'TSK-1002',
+    title: 'Database Schema & Setup',
+    description: 'Provision MySQL database instances and execute migration scripts.',
+    projectId: 1,
+    projectName: 'Enterprise Cloud Migration',
+    assignedEmployeeId: 2,
+    assignedEmployeeName: 'Priya Sharma',
+    employeeName: 'Priya Sharma',
+    priority: 'HIGH',
+    status: 'COMPLETED',
+    progress: 100,
+    dueDate: '2026-08-20',
+    remarks: 'Database tables initialized.'
+  },
+  {
+    id: 3,
+    taskNumber: 'TSK-1003',
+    title: 'AWS Cloud Microservices Deployment',
+    description: 'Deploy Spring Boot backend services to AWS ECS containers.',
+    projectId: 1,
+    projectName: 'Enterprise Cloud Migration',
+    assignedEmployeeId: 1,
+    assignedEmployeeName: 'Kiran Reddy',
+    employeeName: 'Kiran Reddy',
+    priority: 'URGENT',
+    status: 'IN_PROGRESS',
+    progress: 50,
+    dueDate: '2026-09-10',
+    remarks: 'Containerization in progress.'
+  },
+  {
+    id: 4,
+    taskNumber: 'TSK-1004',
+    title: 'E-Learning Video Course Player',
+    description: 'Develop video streaming component and course progress tracker.',
+    projectId: 2,
+    projectName: 'E-Learning & Workforce Portal',
+    assignedEmployeeId: 1,
+    assignedEmployeeName: 'Kiran Reddy',
+    employeeName: 'Kiran Reddy',
+    priority: 'URGENT',
+    status: 'IN_PROGRESS',
+    progress: 60,
+    dueDate: '2026-09-01',
+    remarks: 'UI layout ready, integrating video API.'
+  },
+  {
+    id: 5,
+    taskNumber: 'TSK-1005',
+    title: 'Quiz & Certificate Generation Module',
+    description: 'Implement automated quiz scoring and PDF certificate download.',
+    projectId: 2,
+    projectName: 'E-Learning & Workforce Portal',
+    assignedEmployeeId: 3,
+    assignedEmployeeName: 'Rahul Verma',
+    employeeName: 'Rahul Verma',
+    priority: 'HIGH',
+    status: 'TODO',
+    progress: 0,
+    dueDate: '2026-09-25',
+    remarks: 'Pending backend API integration.'
+  },
+  {
+    id: 6,
+    taskNumber: 'TSK-1006',
+    title: 'Payroll Tax Compliance Engine',
+    description: 'Implement automated tax deduction calculations for employee salaries.',
+    projectId: 3,
+    projectName: 'Automated Payroll & Finance Hub',
+    assignedEmployeeId: 2,
+    assignedEmployeeName: 'Priya Sharma',
+    employeeName: 'Priya Sharma',
+    priority: 'HIGH',
+    status: 'TODO',
+    progress: 0,
+    dueDate: '2026-10-15',
+    remarks: 'Finance specs under review.'
+  }
+];
+const defaultAuditLogs = [];
 
 const getStorage = (key, defaultVal) => {
   const item = localStorage.getItem(`wh_${key}`);
@@ -63,9 +219,6 @@ const syncProjectFromTasks = (pId) => {
     return s === 'DONE' || s === 'COMPLETED';
   }).length;
 
-  const progress = total === 0 ? 0 : Math.round((done / total) * 100);
-  let status = progress === 100 ? 'Completed' : progress === 0 ? 'Not Started' : 'In Progress';
-
   allProjects[pIndex] = {
     ...allProjects[pIndex],
     progress,
@@ -76,6 +229,56 @@ const syncProjectFromTasks = (pId) => {
   };
   setStorage('projects', allProjects);
 };
+
+// ── Auto-backfill default tasks for projects that currently have 0 tasks ────────
+(function backfillMissingTasks() {
+  try {
+    const allProjects = getStorage('projects', defaultProjects);
+    const allTasks = getStorage('tasks', defaultTasks);
+    let changed = false;
+
+    allProjects.forEach((prj) => {
+      const prjTasks = allTasks.filter(t => Number(t.projectId) === Number(prj.id));
+      if (prjTasks.length === 0) {
+        const maxTaskNum = allTasks.reduce((max, taskItem) => {
+          const num = parseInt((taskItem.taskNumber || '').replace('TSK-', '')) || 0;
+          return num > max ? num : max;
+        }, 1000);
+
+        const defaultTitles = [
+          'Architecture & Technical Specification',
+          'Core Features & Module Implementation',
+          'QA & Automated Unit Testing'
+        ];
+
+        defaultTitles.forEach((title, idx) => {
+          allTasks.push({
+            id: Date.now() + idx + Math.floor(Math.random() * 1000),
+            taskNumber: `TSK-${maxTaskNum + 1 + idx}`,
+            title,
+            description: `Task deliverable for project: ${prj.name}`,
+            projectId: prj.id,
+            projectName: prj.name,
+            assignedEmployeeId: prj.assignedEmployeeIds?.[0] || null,
+            priority: 'HIGH',
+            status: 'TODO',
+            progress: 0,
+            dueDate: prj.deadline || '2026-12-31',
+            remarks: 'Project deliverable'
+          });
+        });
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      setStorage('tasks', allTasks);
+      allProjects.forEach(prj => syncProjectFromTasks(prj.id));
+    }
+  } catch (e) {
+    console.error('Backfill error:', e);
+  }
+})();
 
 const handleMockRequest = (method, url, data) => {
   // Always re-read from storage on every request to avoid stale closures
@@ -428,39 +631,45 @@ const handleMockRequest = (method, url, data) => {
     projects.push(newPrj);
     setStorage('projects', projects);
 
-    // Create initial tasks if specified during project creation
-    if (Array.isArray(data?.initialTasks) && data.initialTasks.length > 0) {
-      data.initialTasks.forEach((t, idx) => {
-        if (t.title && t.title.trim()) {
-          const maxTaskNum = tasks.reduce((max, taskItem) => {
-            const num = parseInt((taskItem.taskNumber || '').replace('TSK-', '')) || 0;
-            return num > max ? num : max;
-          }, 1000);
+    // Create initial tasks if specified, or default deliverable tasks if none provided
+    const rawTasks = Array.isArray(data?.initialTasks) ? data.initialTasks.filter(t => t.title && t.title.trim()) : [];
+    const tasksToCreate = rawTasks.length > 0
+      ? rawTasks
+      : [
+          { title: 'Architecture & Technical Specification', priority: 'HIGH' },
+          { title: 'Module Implementation & Integration', priority: 'HIGH' },
+          { title: 'QA & Automated Unit Testing', priority: 'MEDIUM' }
+        ];
 
-          const empId = t.assignedEmployeeId ? Number(t.assignedEmployeeId) : (newPrj.assignedEmployeeIds[0] || null);
-          const emp = empId ? employees.find(e => Number(e.id) === Number(empId)) : null;
+    const currentTasks = getStorage('tasks', defaultTasks);
+    tasksToCreate.forEach((t, idx) => {
+      const maxTaskNum = currentTasks.reduce((max, taskItem) => {
+        const num = parseInt((taskItem.taskNumber || '').replace('TSK-', '')) || 0;
+        return num > max ? num : max;
+      }, 1000);
 
-          tasks.push({
-            id: Date.now() + idx + 1,
-            taskNumber: `TSK-${maxTaskNum + 1 + idx}`,
-            title: t.title.trim(),
-            description: t.description || `Task deliverable for project: ${newPrj.name}`,
-            projectId: newPrj.id,
-            projectName: newPrj.name,
-            assignedEmployeeId: empId,
-            assignedEmployeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
-            employeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
-            priority: t.priority || 'HIGH',
-            status: 'TODO',
-            progress: 0,
-            dueDate: newPrj.deadline || '2026-12-31',
-            remarks: 'Initial project deliverable'
-          });
-        }
+      const empId = t.assignedEmployeeId ? Number(t.assignedEmployeeId) : (newPrj.assignedEmployeeIds?.[0] || null);
+      const emp = empId ? employees.find(e => Number(e.id) === Number(empId)) : null;
+
+      currentTasks.push({
+        id: Date.now() + idx + 1,
+        taskNumber: `TSK-${maxTaskNum + 1}`,
+        title: t.title.trim(),
+        description: t.description || `Task deliverable for project: ${newPrj.name}`,
+        projectId: newPrj.id,
+        projectName: newPrj.name,
+        assignedEmployeeId: empId,
+        assignedEmployeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
+        employeeName: emp ? `${emp.firstName} ${emp.lastName}` : '',
+        priority: t.priority || 'HIGH',
+        status: 'TODO',
+        progress: 0,
+        dueDate: newPrj.deadline || '2026-12-31',
+        remarks: 'Project deliverable'
       });
-      setStorage('tasks', tasks);
-      syncProjectFromTasks(newPrj.id);
-    }
+    });
+    setStorage('tasks', currentTasks);
+    syncProjectFromTasks(newPrj.id);
 
     return { status: 201, data: newPrj };
   }
@@ -581,11 +790,18 @@ const handleMockRequest = (method, url, data) => {
     const empId = currentEmp?.id;
     const empName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.username || '';
 
+    // Projects assigned to current employee
+    const myDirectProjects = empId
+      ? projects.filter(p => Array.isArray(p.assignedEmployeeIds) && p.assignedEmployeeIds.some(id => Number(id) === Number(empId)))
+      : [];
+    const myProjectIds = [...new Set(myDirectProjects.map(p => Number(p.id)))];
+
     const myTasks = tasks.filter(t => {
       if (empId && Number(t.assignedEmployeeId) === Number(empId)) return true;
       if (empName && t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) return true;
       if (empName && t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase()) return true;
       if (currentUser?.username && t.assignedUsername && t.assignedUsername === currentUser.username) return true;
+      if (t.projectId && myProjectIds.includes(Number(t.projectId))) return true;
       return false;
     });
     return { status: 200, data: myTasks };
@@ -924,7 +1140,20 @@ API.interceptors.response.use(
     const config = error.config;
     if (!error.response || error.response.status === 404 || error.response.status >= 500) {
       const method = config.method ? config.method.toLowerCase() : 'get';
-      const url = config.url || '';
+      // Reconstruct URL with query params — Axios stores params separately in config.params
+      let url = config.url || '';
+      if (config.params && typeof config.params === 'object') {
+        const qs = new URLSearchParams();
+        Object.entries(config.params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            qs.append(key, String(value));
+          }
+        });
+        const qsStr = qs.toString();
+        if (qsStr) {
+          url += (url.includes('?') ? '&' : '?') + qsStr;
+        }
+      }
       let data = null;
       try {
         data = config.data ? JSON.parse(config.data) : null;

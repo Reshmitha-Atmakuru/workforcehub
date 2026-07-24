@@ -160,7 +160,10 @@ SET FOREIGN_KEY_CHECKS = 1;
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `role`, `department`) VALUES
 (1, 'admin', 'admin@workforcehub.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi', 'Rajesh', 'Kumar', 'ROLE_ADMIN', 'Management'),
 (2, 'kiran', 'kiran.reddy@workforcehub.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi', 'Kiran', 'Reddy', 'ROLE_EMPLOYEE', 'Engineering'),
-(3, 'priya', 'priya.sharma@workforcehub.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi', 'Priya', 'Sharma', 'ROLE_MANAGER', 'Product');
+(3, 'priya', 'priya.sharma@workforcehub.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi', 'Priya', 'Sharma', 'ROLE_MANAGER', 'Product'),
+(4, 'Vikram', 'vikram@gmail.com', 'vikramMal', 'Vikram', 'M', 'ROLE_EMPLOYEE', 'Engineering'),
+(5, 'Riya', 'riya@gmail.com', 'riyajoseph', 'Riya', 'joseph', 'ROLE_HR', 'Engineering'),
+(6, 'Krishna', 'krishna@gmail.com', '12345678', 'Krishna', 'K', 'ROLE_EMPLOYEE', 'Human Resources');
 
 
 INSERT INTO `employees` (`id`, `code`, `first_name`, `last_name`, `email`, `phone`, `department`, `job_title`, `account_role`, `salary`, `join_date`, `status`, `office_location`, `user_id`) VALUES
