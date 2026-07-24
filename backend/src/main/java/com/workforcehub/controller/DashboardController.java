@@ -21,8 +21,9 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/stats")
-    @Operation(summary = "Get Dashboard Metrics", description = "Returns system KPIs including workforce count, active project counts, task completion rates, and department distribution")
-    public ResponseEntity<DashboardStatsDto> getDashboardStats() {
-        return ResponseEntity.ok(dashboardService.getDashboardStats());
+    @Operation(summary = "Get Dashboard Metrics", description = "Returns system KPIs including workforce count, active project counts, task completion rates, and personalized employee assigned items")
+    public ResponseEntity<DashboardStatsDto> getDashboardStats(org.springframework.security.core.Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : null;
+        return ResponseEntity.ok(dashboardService.getDashboardStats(username));
     }
 }

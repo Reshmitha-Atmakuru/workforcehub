@@ -23,6 +23,7 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final EmailService emailService;
 
@@ -35,6 +36,32 @@ public class TaskServiceImpl implements TaskService {
         String priorityParam = (priority != null && !priority.equalsIgnoreCase("ALL")) ? priority : null;
 
         return taskRepository.searchTasks(searchParam, projIdParam, empIdParam, statusParam, priorityParam)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskDto> getMyTasks(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return getAllTasks(null, null, null, null, null);
+        }
+        User user = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username))
+                .orElse(null);
+
+        if (user == null) {
+            return getAllTasks(null, null, null, null, null);
+        }
+
+        Employee emp = employeeRepository.findByEmail(user.getEmail())
+                .orElse(null);
+
+        if (emp == null) {
+            return getAllTasks(null, null, null, null, null);
+        }
+
+        return taskRepository.findByAssignedEmployeeId(emp.getId())
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());

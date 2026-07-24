@@ -31,6 +31,13 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.getAllProjects(search, department, status));
     }
 
+    @GetMapping("/my-projects")
+    @Operation(summary = "List My Assigned Projects", description = "Fetches projects assigned to the currently authenticated employee")
+    public ResponseEntity<List<ProjectDto>> getMyProjects(Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        return ResponseEntity.ok(projectService.getMyProjects(username));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get Project by ID", description = "Retrieves project details including deadline, budget, status, and task metrics")
     public ResponseEntity<ProjectDto> getProjectById(@PathVariable Long id) {

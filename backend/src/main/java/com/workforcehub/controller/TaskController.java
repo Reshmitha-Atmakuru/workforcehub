@@ -33,6 +33,13 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getAllTasks(search, projectId, assignedEmployeeId, status, priority));
     }
 
+    @GetMapping("/my-tasks")
+    @Operation(summary = "Get My Assigned Tasks", description = "Retrieves tasks assigned to the currently authenticated employee")
+    public ResponseEntity<List<TaskDto>> getMyTasks(Authentication authentication) {
+        String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
+        return ResponseEntity.ok(taskService.getMyTasks(username));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get Task by ID", description = "Retrieves task details including assigned employee and parent project")
     public ResponseEntity<TaskDto> getTaskById(@PathVariable Long id) {

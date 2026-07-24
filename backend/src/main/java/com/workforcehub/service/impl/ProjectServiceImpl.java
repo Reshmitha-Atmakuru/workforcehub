@@ -3,6 +3,7 @@ package com.workforcehub.service.impl;
 import com.workforcehub.dto.ProjectDto;
 import com.workforcehub.exception.ResourceNotFoundException;
 import com.workforcehub.model.AuditLog;
+import com.workforcehub.model.Employee;
 import com.workforcehub.model.Project;
 import com.workforcehub.model.Task;
 import com.workforcehub.repository.AuditLogRepository;
@@ -22,6 +23,10 @@ import java.util.stream.Collectors;
 import com.workforcehub.dto.TaskDto;
 import com.workforcehub.repository.EmployeeRepository;
 
+import com.workforcehub.model.User;
+import com.workforcehub.repository.UserRepository;
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
@@ -29,6 +34,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
     private final EmployeeRepository employeeRepository;
+    private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final EmailService emailService;
 
@@ -42,6 +48,40 @@ public class ProjectServiceImpl implements ProjectService {
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProjectDto> getMyProjects(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return getAllProjects(null, null, null);
+        }
+        User user = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username))
+                .orElse(null);
+
+        if (user == null) {
+            return getAllProjects(null, null, null);
+        }
+
+        Employee emp = employeeRepository.findByEmail(user.getEmail())
+                .orElse(null);
+
+        if (emp == null) {
+            return getAllProjects(null, null, null);
+        }
+
+        List<Task> assignedTasks = taskRepository.findByAssignedEmployeeId(emp.getId());
+        List<Project> projects = assignedTasks.stream()
+                .map(Task::getProject)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (projects.isEmpty() && emp.getDepartment() != null) {
+            projects = projectRepository.searchProjects(null, emp.getDepartment(), null);
+        }
+
+        return projects.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override

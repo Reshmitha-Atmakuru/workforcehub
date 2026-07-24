@@ -4,4 +4,5 @@ import com.workforcehub.dto.DashboardStatsDto;
 
 public interface DashboardService {
     DashboardStatsDto getDashboardStats();
+    DashboardStatsDto getDashboardStats(String username);
 }

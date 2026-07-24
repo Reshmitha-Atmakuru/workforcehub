@@ -25,4 +25,13 @@ public class DashboardStatsDto {
     private List<ProjectDto> activeProjectsOverview;
     private List<ProjectDto> activeProjectsList;
     private List<Map<String, Object>> departmentBreakdown;
+
+    // Employee-specific personalized fields
+    private List<TaskDto> myAssignedTasks;
+    private List<ProjectDto> myAssignedProjects;
+    private long assignedTasksCount;
+    private long pendingTasksCount;
+    private List<TaskDto> upcomingDeadlines;
+    private List<Map<String, Object>> notifications;
+    private List<Map<String, Object>> recentActivities;
 }
