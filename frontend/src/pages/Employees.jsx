@@ -37,6 +37,22 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  // Form State
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '+91 98765 43210',
+    department: 'Engineering',
+    customDepartment: '',
+    jobTitle: 'Software Engineer',
+    accountRole: 'ROLE_EMPLOYEE',
+    salary: 1400000,
+    status: 'ACTIVE',
+    officeLocation: 'Bengaluru, Karnataka',
+    skills: 'Full Stack Development, System Architecture',
+  });
+
   const handleClearFilters = () => {
     setSearch('');
     setDepartment('All');
