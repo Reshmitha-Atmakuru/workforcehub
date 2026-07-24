@@ -821,7 +821,46 @@ const handleMockRequest = (method, url, data) => {
       ? projects.filter(p => Array.isArray(p.assignedEmployeeIds) && p.assignedEmployeeIds.some(id => Number(id) === Number(empId)))
       : [];
     const allMyProjectIds = [...new Set([...myTaskProjectIds, ...myDirectProjects.map(p => Number(p.id))])];
-    const myProjects = projects.filter(p => allMyProjectIds.includes(Number(p.id)));
+    let myProjects = projects.filter(p => allMyProjectIds.includes(Number(p.id)));
+
+    const params = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const search = params.get('search')?.toLowerCase();
+    const department = params.get('department');
+    const statusParam = params.get('status');
+    const priorityParam = params.get('priority');
+    const sortBy = params.get('sortBy');
+    const sortOrder = params.get('direction') || params.get('sortOrder') || 'ASC';
+
+    if (search) {
+      myProjects = myProjects.filter(p =>
+        (p.name && p.name.toLowerCase().includes(search)) ||
+        (p.code && p.code.toLowerCase().includes(search)) ||
+        (p.description && p.description.toLowerCase().includes(search)) ||
+        (p.department && p.department.toLowerCase().includes(search))
+      );
+    }
+    if (department && department !== 'All') {
+      myProjects = myProjects.filter(p => p.department && p.department.toLowerCase() === department.toLowerCase());
+    }
+    if (statusParam && statusParam !== 'All') {
+      myProjects = myProjects.filter(p => p.status && p.status.toLowerCase() === statusParam.toLowerCase());
+    }
+    if (priorityParam && priorityParam !== 'All') {
+      myProjects = myProjects.filter(p => p.priority && p.priority.toUpperCase() === priorityParam.toUpperCase());
+    }
+    if (sortBy) {
+      const isAsc = sortOrder.toUpperCase() === 'ASC';
+      myProjects.sort((a, b) => {
+        let valA = a[sortBy] ?? '';
+        let valB = b[sortBy] ?? '';
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
+    }
+
     return { status: 200, data: myProjects };
   }
 

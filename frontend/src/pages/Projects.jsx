@@ -370,8 +370,23 @@ export default function Projects() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {(() => {
-            // Client-side priority filter + sort (backend doesn't support these params)
+            // Apply client-side search, department, status, priority filters + sorting
             let filtered = [...projects];
+            if (search && search.trim()) {
+              const q = search.trim().toLowerCase();
+              filtered = filtered.filter(p =>
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.code && p.code.toLowerCase().includes(q)) ||
+                (p.description && p.description.toLowerCase().includes(q)) ||
+                (p.department && p.department.toLowerCase().includes(q))
+              );
+            }
+            if (department && department !== 'All') {
+              filtered = filtered.filter(p => p.department && p.department.toLowerCase() === department.toLowerCase());
+            }
+            if (status && status !== 'All') {
+              filtered = filtered.filter(p => p.status && p.status.toLowerCase() === status.toLowerCase());
+            }
             if (priority && priority !== 'All') {
               filtered = filtered.filter(p => p.priority && p.priority.toUpperCase() === priority.toUpperCase());
             }

@@ -66,23 +66,23 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDto> getMyProjects(String username) {
+    public List<ProjectDto> getMyProjects(String username, String search, String department, String status, String priority, String sortBy, String direction) {
         if (username == null || username.trim().isEmpty()) {
-            return getAllProjects(null, null, null, null, "name", "ASC");
+            return getAllProjects(search, department, status, priority, sortBy, direction);
         }
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findByEmail(username))
                 .orElse(null);
 
         if (user == null) {
-            return getAllProjects(null, null, null, null, "name", "ASC");
+            return getAllProjects(search, department, status, priority, sortBy, direction);
         }
 
         Employee emp = employeeRepository.findByEmail(user.getEmail())
                 .orElse(null);
 
         if (emp == null) {
-            return getAllProjects(null, null, null, null, "name", "ASC");
+            return getAllProjects(search, department, status, priority, sortBy, direction);
         }
 
         List<Task> assignedTasks = taskRepository.findByAssignedEmployeeId(emp.getId());
@@ -92,7 +92,68 @@ public class ProjectServiceImpl implements ProjectService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        // NOTE: Department fallback removed — only show explicitly task-assigned projects
+        // Apply search filter
+        if (search != null && !search.trim().isEmpty()) {
+            String q = search.trim().toLowerCase();
+            projects = projects.stream()
+                    .filter(p -> (p.getName() != null && p.getName().toLowerCase().contains(q))
+                            || (p.getCode() != null && p.getCode().toLowerCase().contains(q))
+                            || (p.getDescription() != null && p.getDescription().toLowerCase().contains(q))
+                            || (p.getDepartment() != null && p.getDepartment().toLowerCase().contains(q)))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply department filter
+        if (department != null && !department.trim().isEmpty() && !"ALL".equalsIgnoreCase(department.trim())) {
+            String dept = department.trim();
+            projects = projects.stream()
+                    .filter(p -> p.getDepartment() != null && p.getDepartment().equalsIgnoreCase(dept))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply status filter
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+            String st = status.trim();
+            projects = projects.stream()
+                    .filter(p -> p.getStatus() != null && p.getStatus().equalsIgnoreCase(st))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply priority filter
+        if (priority != null && !priority.trim().isEmpty() && !"ALL".equalsIgnoreCase(priority.trim())) {
+            String pr = priority.trim();
+            projects = projects.stream()
+                    .filter(p -> p.getPriority() != null && p.getPriority().equalsIgnoreCase(pr))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply sorting
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            final boolean isAsc = "ASC".equalsIgnoreCase(direction);
+            final String field = sortBy;
+            projects.sort((p1, p2) -> {
+                int cmp = 0;
+                if ("department".equalsIgnoreCase(field)) {
+                    String d1 = p1.getDepartment() != null ? p1.getDepartment() : "";
+                    String d2 = p2.getDepartment() != null ? p2.getDepartment() : "";
+                    cmp = d1.compareToIgnoreCase(d2);
+                } else if ("status".equalsIgnoreCase(field)) {
+                    String s1 = p1.getStatus() != null ? p1.getStatus() : "";
+                    String s2 = p2.getStatus() != null ? p2.getStatus() : "";
+                    cmp = s1.compareToIgnoreCase(s2);
+                } else if ("priority".equalsIgnoreCase(field)) {
+                    String r1 = p1.getPriority() != null ? p1.getPriority() : "";
+                    String r2 = p2.getPriority() != null ? p2.getPriority() : "";
+                    cmp = r1.compareToIgnoreCase(r2);
+                } else {
+                    String n1 = p1.getName() != null ? p1.getName() : "";
+                    String n2 = p2.getName() != null ? p2.getName() : "";
+                    cmp = n1.compareToIgnoreCase(n2);
+                }
+                return isAsc ? cmp : -cmp;
+            });
+        }
+
         return projects.stream().map(this::mapToDto).collect(Collectors.toList());
     }
 

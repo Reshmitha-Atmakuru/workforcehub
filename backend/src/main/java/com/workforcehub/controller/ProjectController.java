@@ -35,10 +35,17 @@ public class ProjectController {
     }
 
     @GetMapping("/my-projects")
-    @Operation(summary = "List My Assigned Projects", description = "Fetches projects assigned to the currently authenticated employee")
-    public ResponseEntity<List<ProjectDto>> getMyProjects(Authentication authentication) {
+    @Operation(summary = "List My Assigned Projects", description = "Fetches projects assigned to the currently authenticated employee with optional search, department, status, priority filters, and sorting")
+    public ResponseEntity<List<ProjectDto>> getMyProjects(
+            Authentication authentication,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction) {
         String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
-        return ResponseEntity.ok(projectService.getMyProjects(username));
+        return ResponseEntity.ok(projectService.getMyProjects(username, search, department, status, priority, sortBy, direction));
     }
 
     @GetMapping("/{id}")
