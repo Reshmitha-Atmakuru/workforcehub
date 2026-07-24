@@ -42,29 +42,57 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public List<TaskDto> getMyTasks(String username) {
+    public List<TaskDto> getMyTasks(String username, String search, String status, String priority) {
         if (username == null || username.trim().isEmpty()) {
-            return getAllTasks(null, null, null, null, null);
+            return getAllTasks(search, null, null, status, priority);
         }
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findByEmail(username))
                 .orElse(null);
 
         if (user == null) {
-            return getAllTasks(null, null, null, null, null);
+            return getAllTasks(search, null, null, status, priority);
         }
 
         Employee emp = employeeRepository.findByEmail(user.getEmail())
                 .orElse(null);
 
         if (emp == null) {
-            return getAllTasks(null, null, null, null, null);
+            return getAllTasks(search, null, null, status, priority);
         }
 
-        return taskRepository.findByAssignedEmployeeId(emp.getId())
+        // Get all tasks for this employee, then apply optional filters
+        List<TaskDto> myTasks = taskRepository.findByAssignedEmployeeId(emp.getId())
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+
+        // Apply search filter
+        if (search != null && !search.trim().isEmpty()) {
+            String q = search.trim().toLowerCase();
+            myTasks = myTasks.stream()
+                    .filter(t -> (t.getTitle() != null && t.getTitle().toLowerCase().contains(q))
+                            || (t.getDescription() != null && t.getDescription().toLowerCase().contains(q))
+                            || (t.getTaskNumber() != null && t.getTaskNumber().toLowerCase().contains(q))
+                            || (t.getRemarks() != null && t.getRemarks().toLowerCase().contains(q)))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply status filter
+        if (status != null && !status.equalsIgnoreCase("ALL") && !status.trim().isEmpty()) {
+            myTasks = myTasks.stream()
+                    .filter(t -> t.getStatus() != null && t.getStatus().equalsIgnoreCase(status))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply priority filter
+        if (priority != null && !priority.equalsIgnoreCase("ALL") && !priority.trim().isEmpty()) {
+            myTasks = myTasks.stream()
+                    .filter(t -> t.getPriority() != null && t.getPriority().equalsIgnoreCase(priority))
+                    .collect(Collectors.toList());
+        }
+
+        return myTasks;
     }
 
     @Override

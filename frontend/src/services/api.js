@@ -750,7 +750,7 @@ const handleMockRequest = (method, url, data) => {
       : [];
     const myProjectIds = [...new Set(myDirectProjects.map(p => Number(p.id)))];
 
-    const myTasks = tasks.filter(t => {
+    let myTasks = tasks.filter(t => {
       if (empId && Number(t.assignedEmployeeId) === Number(empId)) return true;
       if (empName && t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) return true;
       if (empName && t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase()) return true;
@@ -758,6 +758,31 @@ const handleMockRequest = (method, url, data) => {
       if (t.projectId && myProjectIds.includes(Number(t.projectId))) return true;
       return false;
     });
+
+    const params = new URLSearchParams(url.includes('?') ? url.split('?')[1] : '');
+    const search = params.get('search')?.toLowerCase();
+    const prjIdParam = params.get('projectId');
+    const statusParam = params.get('status');
+    const priorityParam = params.get('priority');
+
+    if (search) {
+      myTasks = myTasks.filter(t =>
+        (t.title && t.title.toLowerCase().includes(search)) ||
+        (t.description && t.description.toLowerCase().includes(search)) ||
+        (t.taskNumber && t.taskNumber.toLowerCase().includes(search)) ||
+        (t.remarks && t.remarks.toLowerCase().includes(search))
+      );
+    }
+    if (prjIdParam && prjIdParam !== 'All') {
+      myTasks = myTasks.filter(t => Number(t.projectId) === Number(prjIdParam));
+    }
+    if (statusParam && statusParam !== 'All') {
+      myTasks = myTasks.filter(t => String(t.status || '').toUpperCase() === statusParam.toUpperCase());
+    }
+    if (priorityParam && priorityParam !== 'All') {
+      myTasks = myTasks.filter(t => String(t.priority || '').toUpperCase() === priorityParam.toUpperCase());
+    }
+
     return { status: 200, data: myTasks };
   }
 

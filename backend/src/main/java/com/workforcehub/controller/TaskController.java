@@ -34,10 +34,14 @@ public class TaskController {
     }
 
     @GetMapping("/my-tasks")
-    @Operation(summary = "Get My Assigned Tasks", description = "Retrieves tasks assigned to the currently authenticated employee")
-    public ResponseEntity<List<TaskDto>> getMyTasks(Authentication authentication) {
+    @Operation(summary = "Get My Assigned Tasks", description = "Retrieves tasks assigned to the currently authenticated employee with optional search, status, and priority filters")
+    public ResponseEntity<List<TaskDto>> getMyTasks(
+            Authentication authentication,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority) {
         String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
-        return ResponseEntity.ok(taskService.getMyTasks(username));
+        return ResponseEntity.ok(taskService.getMyTasks(username, search, status, priority));
     }
 
     @GetMapping("/{id}")
