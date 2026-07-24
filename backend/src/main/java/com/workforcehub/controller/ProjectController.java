@@ -23,12 +23,15 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    @Operation(summary = "List All Projects", description = "Fetches project portfolio with dynamic completion percentage, status, and department filtering")
+    @Operation(summary = "List All Projects", description = "Fetches project portfolio with dynamic completion percentage, status, priority, department filtering, and sorting")
     public ResponseEntity<List<ProjectDto>> getAllProjects(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String department,
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(projectService.getAllProjects(search, department, status));
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "ASC") String direction) {
+        return ResponseEntity.ok(projectService.getAllProjects(search, department, status, priority, sortBy, direction));
     }
 
     @GetMapping("/my-projects")

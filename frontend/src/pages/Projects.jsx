@@ -73,15 +73,25 @@ export default function Projects() {
     fetchData();
   }, [search, department, status, priority, sortBy, sortOrder]);
 
+  const handleClearFilters = () => {
+    setSearch('');
+    setDepartment('All');
+    setStatus('All');
+    setPriority('All');
+    setSortBy('name');
+    setSortOrder('ASC');
+  };
+
   const fetchData = async () => {
     try {
       const projectEndpoint = (!canManageProjects && isEmployee) ? '/projects/my-projects' : '/projects';
-      // Backend supports: search, department, status only
-      // priority filter and sortBy/sortOrder are applied client-side below
       const backendParams = {};
       if (search && search.trim()) backendParams.search = search.trim();
       if (department && department !== 'All') backendParams.department = department;
       if (status && status !== 'All') backendParams.status = status;
+      if (priority && priority !== 'All') backendParams.priority = priority;
+      if (sortBy) backendParams.sortBy = sortBy;
+      if (sortOrder) backendParams.direction = sortOrder;
 
       const requests = [API.get(projectEndpoint, { params: backendParams })];
       if (canManageProjects || canManageEmployees || isEmployee) {
@@ -333,9 +343,23 @@ export default function Projects() {
               <option value="department-ASC">Sort: Department Name (A-Z)</option>
               <option value="department-DESC">Sort: Department Name (Z-A)</option>
               <option value="status-ASC">Sort: Status (A-Z)</option>
+              <option value="priority-DESC">Sort: Priority (Urgent-Low)</option>
+              <option value="startDate-ASC">Sort: Start Date (Earliest)</option>
+              <option value="deadline-ASC">Sort: Deadline (Earliest)</option>
             </select>
           </div>
         </div>
+
+        {(search || department !== 'All' || status !== 'All' || priority !== 'All' || sortBy !== 'name') && (
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleClearFilters}
+              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Projects Grid */}

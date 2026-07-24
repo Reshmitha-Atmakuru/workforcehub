@@ -33,6 +33,8 @@ export default function Tasks() {
   const [assignedEmployeeId, setAssignedEmployeeId] = useState('All');
   const [status, setStatus] = useState('All');
   const [priority, setPriority] = useState('All');
+  const [sortBy, setSortBy] = useState('id');
+  const [sortOrder, setSortOrder] = useState('DESC');
 
   useEffect(() => {
     if (urlProjectId) {
@@ -40,27 +42,19 @@ export default function Tasks() {
     }
   }, [urlProjectId]);
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
-
-  // Form State
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    projectId: '',
-    assignedEmployeeId: '',
-    priority: 'HIGH',
-    status: 'TODO',
-    progress: 0,
-    remarks: 'Task initialized',
-    dueDate: '2026-08-15',
-  });
+  const handleClearFilters = () => {
+    setSearch('');
+    setProjectId('All');
+    setAssignedEmployeeId('All');
+    setStatus('All');
+    setPriority('All');
+    setSortBy('id');
+    setSortOrder('DESC');
+  };
 
   useEffect(() => {
     fetchData();
-  }, [search, projectId, assignedEmployeeId, status, priority]);
+  }, [search, projectId, assignedEmployeeId, status, priority, sortBy, sortOrder]);
 
   // Refresh tasks when navigating back to this page OR when a project was just created
   useEffect(() => {
@@ -72,7 +66,7 @@ export default function Tasks() {
       window.removeEventListener('workforcehub:data-updated', handleDataUpdate);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [search, projectId, assignedEmployeeId, status, priority]);
+  }, [search, projectId, assignedEmployeeId, status, priority, sortBy, sortOrder]);
 
   const fetchData = async () => {
     try {
@@ -85,6 +79,8 @@ export default function Tasks() {
       if (assignedEmployeeId && assignedEmployeeId !== 'All') taskParams.assignedEmployeeId = assignedEmployeeId;
       if (status && status !== 'All') taskParams.status = status;
       if (priority && priority !== 'All') taskParams.priority = priority;
+      if (sortBy) taskParams.sortBy = sortBy;
+      if (sortOrder) taskParams.direction = sortOrder;
 
       const requests = [
         API.get(taskEndpoint, { params: taskParams }),
@@ -255,7 +251,37 @@ export default function Tasks() {
               <option value="LOW">LOW</option>
             </select>
           </div>
+
+          <div>
+            <select
+              value={`${sortBy}-${sortOrder}`}
+              onChange={(e) => {
+                const [sb, so] = e.target.value.split('-');
+                setSortBy(sb);
+                setSortOrder(so);
+              }}
+              className="w-full bg-[#131d38] border border-slate-700/80 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+            >
+              <option value="id-DESC">Sort: Date Created (Newest)</option>
+              <option value="dueDate-ASC">Sort: Due Date (Soonest)</option>
+              <option value="dueDate-DESC">Sort: Due Date (Latest)</option>
+              <option value="priority-DESC">Sort: Priority (Urgent-Low)</option>
+              <option value="status-ASC">Sort: Status (A-Z)</option>
+              <option value="title-ASC">Sort: Title (A-Z)</option>
+            </select>
+          </div>
         </div>
+
+        {(search || projectId !== 'All' || assignedEmployeeId !== 'All' || status !== 'All' || priority !== 'All' || sortBy !== 'id') && (
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleClearFilters}
+              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Task List Table */}

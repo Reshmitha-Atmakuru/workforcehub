@@ -39,12 +39,27 @@ public class ProjectServiceImpl implements ProjectService {
     private final EmailService emailService;
 
     @Override
-    public List<ProjectDto> getAllProjects(String search, String department, String status) {
+    public List<ProjectDto> getAllProjects(String search, String department, String status, String priority, String sortBy, String direction) {
         String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
         String deptParam = (department != null && !department.trim().isEmpty() && !"ALL".equalsIgnoreCase(department.trim())) ? department.trim() : null;
         String statusParam = (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) ? status.trim() : null;
+        String priorityParam = (priority != null && !priority.trim().isEmpty() && !"ALL".equalsIgnoreCase(priority.trim())) ? priority.trim() : null;
 
-        return projectRepository.searchProjects(searchParam, deptParam, statusParam)
+        String sortProperty = (sortBy != null && !sortBy.trim().isEmpty()) ? sortBy.trim() : "name";
+        // Map common frontend sort fields to entity properties
+        if ("code".equalsIgnoreCase(sortProperty)) sortProperty = "code";
+        else if ("department".equalsIgnoreCase(sortProperty)) sortProperty = "department";
+        else if ("status".equalsIgnoreCase(sortProperty)) sortProperty = "status";
+        else if ("priority".equalsIgnoreCase(sortProperty)) sortProperty = "priority";
+        else if ("startDate".equalsIgnoreCase(sortProperty)) sortProperty = "startDate";
+        else if ("deadline".equalsIgnoreCase(sortProperty)) sortProperty = "deadline";
+        else sortProperty = "name";
+
+        org.springframework.data.domain.Sort sort = "DESC".equalsIgnoreCase(direction)
+                ? org.springframework.data.domain.Sort.by(sortProperty).descending()
+                : org.springframework.data.domain.Sort.by(sortProperty).ascending();
+
+        return projectRepository.searchProjects(searchParam, deptParam, statusParam, priorityParam, sort)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -53,21 +68,21 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectDto> getMyProjects(String username) {
         if (username == null || username.trim().isEmpty()) {
-            return getAllProjects(null, null, null);
+            return getAllProjects(null, null, null, null, "name", "ASC");
         }
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findByEmail(username))
                 .orElse(null);
 
         if (user == null) {
-            return getAllProjects(null, null, null);
+            return getAllProjects(null, null, null, null, "name", "ASC");
         }
 
         Employee emp = employeeRepository.findByEmail(user.getEmail())
                 .orElse(null);
 
         if (emp == null) {
-            return getAllProjects(null, null, null);
+            return getAllProjects(null, null, null, null, "name", "ASC");
         }
 
         List<Task> assignedTasks = taskRepository.findByAssignedEmployeeId(emp.getId());

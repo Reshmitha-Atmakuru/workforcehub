@@ -28,34 +28,32 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
   const [status, setStatus] = useState('All');
   const [sortBy, setSortBy] = useState('code');
   const [sortOrder, setSortOrder] = useState('DESC');
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
   // Edit / Delete State
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    department: 'Engineering',
-    customDepartment: '',
-    jobTitle: '',
-    accountRole: 'ROLE_EMPLOYEE',
-    salary: 1400000,
-    status: 'ACTIVE',
-    officeLocation: 'Bengaluru, Karnataka',
-    skills: 'Full Stack Development, API Integration, Security',
-  });
+  const handleClearFilters = () => {
+    setSearch('');
+    setDepartment('All');
+    setRole('All');
+    setStatus('All');
+    setSortBy('code');
+    setSortOrder('DESC');
+    setPage(0);
+  };
 
   useEffect(() => {
     fetchEmployees();
-  }, [search, department, role, status, sortBy, sortOrder]);
+  }, [search, department, role, status, sortBy, sortOrder, page, size]);
 
   const fetchEmployees = async () => {
     try {
-      const params = {};
+      const params = { page, size };
       if (search) params.search = search;
       if (department && department !== 'All') params.department = department;
       if (role && role !== 'All') params.role = role;
@@ -66,12 +64,18 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
       const res = await API.get('/employees', { params });
       // Handle Spring Boot Page response: {content: [...]} or flat array or mock {data: [...]}
       let data = [];
-      if (Array.isArray(res.data)) {
-        data = res.data;
-      } else if (res.data && Array.isArray(res.data.content)) {
+      if (res.data && Array.isArray(res.data.content)) {
         data = res.data.content;
+        setTotalPages(res.data.totalPages || 1);
+        setTotalElements(res.data.totalElements || data.length);
+      } else if (Array.isArray(res.data)) {
+        data = res.data;
+        setTotalPages(1);
+        setTotalElements(data.length);
       } else if (res.data && Array.isArray(res.data.data)) {
         data = res.data.data;
+        setTotalPages(1);
+        setTotalElements(data.length);
       }
       // Ensure salary is a number for proper formatting
       data = data.map(e => ({
@@ -285,6 +289,17 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
             </select>
           </div>
         </div>
+
+        {(search || department !== 'All' || role !== 'All' || status !== 'All' || sortBy !== 'code') && (
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={handleClearFilters}
+              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Directory Table */}
@@ -378,6 +393,46 @@ export default function Employees({ isModalOpen, setIsModalOpen }) {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Footer */}
+            <div className="px-4 py-3 bg-[#131e3b] border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <span>Show</span>
+                <select
+                  value={size}
+                  onChange={(e) => {
+                    setSize(Number(e.target.value));
+                    setPage(0);
+                  }}
+                  className="bg-[#0f172a] border border-slate-700 text-slate-200 rounded px-2 py-1 focus:outline-none focus:border-blue-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+                <span>entries per page (Total: {totalElements} records)</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 rounded font-medium transition-colors"
+                >
+                  Previous
+                </button>
+                <span className="font-semibold text-slate-200">
+                  Page {page + 1} of {totalPages || 1}
+                </span>
+                <button
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  className="px-3 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-200 rounded font-medium transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

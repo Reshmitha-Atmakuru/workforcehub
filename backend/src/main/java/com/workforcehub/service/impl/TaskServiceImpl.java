@@ -28,37 +28,49 @@ public class TaskServiceImpl implements TaskService {
     private final EmailService emailService;
 
     @Override
-    public List<TaskDto> getAllTasks(String search, Long projectId, Long assignedEmployeeId, String status, String priority) {
+    public List<TaskDto> getAllTasks(String search, Long projectId, Long assignedEmployeeId, String status, String priority, String sortBy, String direction) {
         String searchParam = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
         Long projIdParam = (projectId != null && projectId > 0) ? projectId : null;
         Long empIdParam = (assignedEmployeeId != null && assignedEmployeeId > 0) ? assignedEmployeeId : null;
         String statusParam = (status != null && !status.equalsIgnoreCase("ALL")) ? status : null;
         String priorityParam = (priority != null && !priority.equalsIgnoreCase("ALL")) ? priority : null;
 
-        return taskRepository.searchTasks(searchParam, projIdParam, empIdParam, statusParam, priorityParam)
+        String sortProperty = (sortBy != null && !sortBy.trim().isEmpty()) ? sortBy.trim() : "id";
+        if ("dueDate".equalsIgnoreCase(sortProperty)) sortProperty = "dueDate";
+        else if ("priority".equalsIgnoreCase(sortProperty)) sortProperty = "priority";
+        else if ("status".equalsIgnoreCase(sortProperty)) sortProperty = "status";
+        else if ("title".equalsIgnoreCase(sortProperty)) sortProperty = "title";
+        else if ("taskNumber".equalsIgnoreCase(sortProperty)) sortProperty = "taskNumber";
+        else sortProperty = "id";
+
+        org.springframework.data.domain.Sort sort = "ASC".equalsIgnoreCase(direction)
+                ? org.springframework.data.domain.Sort.by(sortProperty).ascending()
+                : org.springframework.data.domain.Sort.by(sortProperty).descending();
+
+        return taskRepository.searchTasks(searchParam, projIdParam, empIdParam, statusParam, priorityParam, sort)
                 .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<TaskDto> getMyTasks(String username, String search, String status, String priority) {
+    public List<TaskDto> getMyTasks(String username, String search, String status, String priority, String sortBy, String direction) {
         if (username == null || username.trim().isEmpty()) {
-            return getAllTasks(search, null, null, status, priority);
+            return getAllTasks(search, null, null, status, priority, sortBy, direction);
         }
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findByEmail(username))
                 .orElse(null);
 
         if (user == null) {
-            return getAllTasks(search, null, null, status, priority);
+            return getAllTasks(search, null, null, status, priority, sortBy, direction);
         }
 
         Employee emp = employeeRepository.findByEmail(user.getEmail())
                 .orElse(null);
 
         if (emp == null) {
-            return getAllTasks(search, null, null, status, priority);
+            return getAllTasks(search, null, null, status, priority, sortBy, direction);
         }
 
         // Get all tasks for this employee, then apply optional filters
@@ -90,6 +102,37 @@ public class TaskServiceImpl implements TaskService {
             myTasks = myTasks.stream()
                     .filter(t -> t.getPriority() != null && t.getPriority().equalsIgnoreCase(priority))
                     .collect(Collectors.toList());
+        }
+
+        // Apply sorting
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            final boolean isAsc = "ASC".equalsIgnoreCase(direction);
+            final String field = sortBy;
+            myTasks.sort((t1, t2) -> {
+                int cmp = 0;
+                if ("dueDate".equalsIgnoreCase(field)) {
+                    LocalDate da = t1.getDueDate() != null ? t1.getDueDate() : LocalDate.MAX;
+                    LocalDate db = t2.getDueDate() != null ? t2.getDueDate() : LocalDate.MAX;
+                    cmp = da.compareTo(db);
+                } else if ("priority".equalsIgnoreCase(field)) {
+                    String pa = t1.getPriority() != null ? t1.getPriority() : "";
+                    String pb = t2.getPriority() != null ? t2.getPriority() : "";
+                    cmp = pa.compareToIgnoreCase(pb);
+                } else if ("status".equalsIgnoreCase(field)) {
+                    String sa = t1.getStatus() != null ? t1.getStatus() : "";
+                    String sb = t2.getStatus() != null ? t2.getStatus() : "";
+                    cmp = sa.compareToIgnoreCase(sb);
+                } else if ("title".equalsIgnoreCase(field)) {
+                    String ta = t1.getTitle() != null ? t1.getTitle() : "";
+                    String tb = t2.getTitle() != null ? t2.getTitle() : "";
+                    cmp = ta.compareToIgnoreCase(tb);
+                } else {
+                    Long ia = t1.getId() != null ? t1.getId() : 0L;
+                    Long ib = t2.getId() != null ? t2.getId() : 0L;
+                    cmp = ia.compareTo(ib);
+                }
+                return isAsc ? cmp : -cmp;
+            });
         }
 
         return myTasks;

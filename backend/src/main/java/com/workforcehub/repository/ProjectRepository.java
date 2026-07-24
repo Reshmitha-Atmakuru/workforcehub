@@ -16,9 +16,12 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT p FROM Project p WHERE " +
            "(:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:department IS NULL OR LOWER(p.department) = LOWER(:department)) AND " +
-           "(:status IS NULL OR LOWER(p.status) = LOWER(:status))")
+           "(:status IS NULL OR LOWER(p.status) = LOWER(:status)) AND " +
+           "(:priority IS NULL OR UPPER(p.priority) = UPPER(:priority))")
     List<Project> searchProjects(
             @Param("search") String search,
             @Param("department") String department,
-            @Param("status") String status);
+            @Param("status") String status,
+            @Param("priority") String priority,
+            org.springframework.data.domain.Sort sort);
 }

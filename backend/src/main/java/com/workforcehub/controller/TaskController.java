@@ -23,25 +23,29 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    @Operation(summary = "Get All Tasks", description = "Retrieves all deliverable tasks with search, project, assigned employee, status, and priority filters")
+    @Operation(summary = "Get All Tasks", description = "Retrieves all deliverable tasks with search, project, assigned employee, status, priority filters, and sorting")
     public ResponseEntity<List<TaskDto>> getAllTasks(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long projectId,
             @RequestParam(required = false) Long assignedEmployeeId,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority) {
-        return ResponseEntity.ok(taskService.getAllTasks(search, projectId, assignedEmployeeId, status, priority));
+            @RequestParam(required = false) String priority,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
+        return ResponseEntity.ok(taskService.getAllTasks(search, projectId, assignedEmployeeId, status, priority, sortBy, direction));
     }
 
     @GetMapping("/my-tasks")
-    @Operation(summary = "Get My Assigned Tasks", description = "Retrieves tasks assigned to the currently authenticated employee with optional search, status, and priority filters")
+    @Operation(summary = "Get My Assigned Tasks", description = "Retrieves tasks assigned to the currently authenticated employee with optional search, status, priority filters, and sorting")
     public ResponseEntity<List<TaskDto>> getMyTasks(
             Authentication authentication,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority) {
+            @RequestParam(required = false) String priority,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String direction) {
         String username = (authentication != null && authentication.getName() != null) ? authentication.getName() : "admin";
-        return ResponseEntity.ok(taskService.getMyTasks(username, search, status, priority));
+        return ResponseEntity.ok(taskService.getMyTasks(username, search, status, priority, sortBy, direction));
     }
 
     @GetMapping("/{id}")

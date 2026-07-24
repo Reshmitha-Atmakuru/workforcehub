@@ -524,7 +524,7 @@ const handleMockRequest = (method, url, data) => {
     const status = params.get('status');
     const priority = params.get('priority');
     const sortBy = params.get('sortBy');
-    const sortOrder = params.get('sortOrder') || 'ASC';
+    const sortOrder = params.get('direction') || params.get('sortOrder') || 'ASC';
 
     if (search) {
       result = result.filter(p =>
@@ -724,8 +724,20 @@ const handleMockRequest = (method, url, data) => {
     if (statusParam && statusParam !== 'All') {
       result = result.filter(t => String(t.status || '').toUpperCase() === statusParam.toUpperCase());
     }
-    if (priorityParam && priorityParam !== 'All') {
-      result = result.filter(t => String(t.priority || '').toUpperCase() === priorityParam.toUpperCase());
+    const sortBy = params.get('sortBy');
+    const sortOrder = params.get('direction') || params.get('sortOrder') || 'DESC';
+
+    if (sortBy) {
+      const isAsc = sortOrder.toUpperCase() === 'ASC';
+      result.sort((a, b) => {
+        let valA = a[sortBy] ?? '';
+        let valB = b[sortBy] ?? '';
+        if (typeof valA === 'string') valA = valA.toLowerCase();
+        if (typeof valB === 'string') valB = valB.toLowerCase();
+        if (valA < valB) return isAsc ? -1 : 1;
+        if (valA > valB) return isAsc ? 1 : -1;
+        return 0;
+      });
     }
 
     return { status: 200, data: result };

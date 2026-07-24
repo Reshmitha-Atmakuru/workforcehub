@@ -24,5 +24,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("projectId") Long projectId,
             @Param("assignedEmployeeId") Long assignedEmployeeId,
             @Param("status") String status,
-            @Param("priority") String priority);
+            @Param("priority") String priority,
+            org.springframework.data.domain.Sort sort);
 }

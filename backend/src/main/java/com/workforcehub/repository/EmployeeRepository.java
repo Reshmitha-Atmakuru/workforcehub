@@ -21,9 +21,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
            "(:search IS NULL OR LOWER(e.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(e.lastName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(e.code) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "LOWER(e.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(e.jobTitle) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:department IS NULL OR LOWER(e.department) = LOWER(:department)) AND " +
-           "(:status IS NULL OR e.status = :status) AND " +
+           "(:status IS NULL OR LOWER(e.status) = LOWER(:status)) AND " +
            "(:role IS NULL OR e.accountRole = :role)")
     Page<Employee> searchEmployees(
             @Param("search") String search,
