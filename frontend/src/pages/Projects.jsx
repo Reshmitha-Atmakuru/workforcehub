@@ -187,6 +187,8 @@ export default function Projects() {
         setDepartment('All');
         setStatus('All');
         setPriority('All');
+        // Notify other pages (Tasks, Dashboard) that new data is available
+        window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'project-created' } }));
       }
       setIsModalOpen(false);
       await fetchData();

@@ -62,6 +62,18 @@ export default function Tasks() {
     fetchData();
   }, [search, projectId, assignedEmployeeId, status, priority]);
 
+  // Refresh tasks when navigating back to this page OR when a project was just created
+  useEffect(() => {
+    const handleDataUpdate = () => fetchData();
+    const handleVisibility = () => { if (document.visibilityState === 'visible') fetchData(); };
+    window.addEventListener('workforcehub:data-updated', handleDataUpdate);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('workforcehub:data-updated', handleDataUpdate);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [search, projectId, assignedEmployeeId, status, priority]);
+
   const fetchData = async () => {
     try {
       const requests = [
@@ -135,6 +147,8 @@ export default function Tasks() {
         await API.post('/tasks', formData);
       }
       setIsModalOpen(false);
+      // Notify Dashboard and other pages to refresh
+      window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'task-saved' } }));
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Error saving task');
@@ -146,6 +160,8 @@ export default function Tasks() {
     try {
       await API.delete(`/tasks/${deleteId}`);
       setDeleteId(null);
+      // Notify Dashboard and Projects to refresh
+      window.dispatchEvent(new CustomEvent('workforcehub:data-updated', { detail: { type: 'task-deleted' } }));
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Error deleting task');

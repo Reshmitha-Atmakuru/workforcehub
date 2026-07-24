@@ -10,7 +10,7 @@ export default function Login() {
 
   const [activeTab, setActiveTab] = useState(() => (location.state?.registeredRole === 'ROLE_ADMIN' ? 'admin' : 'employee'));
   const [username, setUsername] = useState(() => location.state?.registeredUsername || 'admin');
-  const [password, setPassword] = useState(() => (location.state?.registeredUsername ? '' : 'admin123'));
+  const [password, setPassword] = useState('');  // Never pre-fill password
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState(() => location.state?.successMessage || '');
@@ -32,11 +32,10 @@ export default function Login() {
     setActiveTab(tab);
     if (tab === 'admin') {
       setUsername('admin');
-      setPassword('admin123');
     } else {
-      setUsername('employee');
-      setPassword('');
+      setUsername('');
     }
+    setPassword('');  // Never pre-fill password on tab change
     setError('');
     setSuccessMsg('');
   };
@@ -60,26 +59,21 @@ export default function Login() {
       case 'admin':
         setActiveTab('admin');
         setUsername('admin');
-        setPassword('admin123');
+        setPassword('');  // Do not expose password; user must type it
         break;
       case 'manager':
         setActiveTab('admin');
-        setUsername('manager');
+        setUsername('priya');
         setPassword('');
         break;
-      case 'hr_lead':
-        setActiveTab('admin');
-        setUsername('hr_lead');
-        setPassword('');
-        break;
-      case 'finance':
-        setActiveTab('admin');
-        setUsername('finance');
+      case 'employee':
+        setActiveTab('employee');
+        setUsername('kiran');
         setPassword('');
         break;
       default:
         setActiveTab('employee');
-        setUsername('employee');
+        setUsername('');
         setPassword('');
         break;
     }
@@ -179,7 +173,7 @@ export default function Login() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={activeTab === 'admin' ? 'admin' : 'employee'}
+                placeholder={activeTab === 'admin' ? 'admin' : 'Enter your username'}
                 className="w-full bg-[#131d38] border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
               />
             </div>
@@ -194,7 +188,8 @@ export default function Login() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
+                placeholder="Enter your password"
+                autoComplete="current-password"
                 className="w-full bg-[#131d38] border border-slate-700/80 rounded-xl py-2.5 pl-10 pr-10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
               />
               <button
@@ -221,12 +216,12 @@ export default function Login() {
           </button>
         </form>
 
-        {/* Quick Fill — Admin only */}
-        <div className="mt-6 pt-5 border-t border-slate-800 text-center">
-          <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mb-2.5">
-            QUICK FILL — ADMIN ACCESS
+        {/* Quick Fill — Username only, no password */}
+        <div className="mt-6 pt-5 border-t border-slate-800">
+          <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold mb-2 text-center">
+            Quick Fill — Select Role
           </p>
-          <div className="flex flex-wrap justify-center gap-1.5">
+          <div className="flex flex-wrap justify-center gap-1.5 mb-3">
             <button
               type="button"
               onClick={() => fillQuick('admin')}
@@ -235,11 +230,32 @@ export default function Login() {
               <ShieldCheck className="w-3 h-3 text-blue-400" />
               <span>Admin</span>
             </button>
+            <button
+              type="button"
+              onClick={() => fillQuick('manager')}
+              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-indigo-300 border border-indigo-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <ShieldCheck className="w-3 h-3 text-indigo-400" />
+              <span>Manager</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => fillQuick('employee')}
+              className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-[10px] font-mono text-emerald-300 border border-emerald-500/30 flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <UserCheck className="w-3 h-3 text-emerald-400" />
+              <span>Employee</span>
+            </button>
           </div>
+          {/* Hint — only username is shown, password must be typed */}
+          <p className="text-[10px] text-slate-500 text-center">
+            Default password: <span className="text-slate-400 font-mono">password123</span>
+            <span className="text-slate-600"> (see README for full credentials)</span>
+          </p>
         </div>
 
         {/* Register Link */}
-        <div className="mt-6 text-center text-xs text-slate-400">
+        <div className="mt-4 text-center text-xs text-slate-400">
           <span>Don't have an account? </span>
           <Link to="/register" className="text-blue-400 hover:underline font-semibold">
             Create New Account

@@ -33,6 +33,15 @@ export default function Dashboard({ onOpenNewEmployeeModal }) {
 
   useEffect(() => {
     fetchDashboardStats();
+    // Refresh dashboard when tasks or projects are created elsewhere in the app
+    const handleDataUpdate = () => fetchDashboardStats();
+    const handleVisibility = () => { if (document.visibilityState === 'visible') fetchDashboardStats(); };
+    window.addEventListener('workforcehub:data-updated', handleDataUpdate);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('workforcehub:data-updated', handleDataUpdate);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const fetchDashboardStats = async () => {

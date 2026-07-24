@@ -45,12 +45,45 @@ const setStorage = (key, val) => {
 })();
 
 
+// ── Recalculate and persist project progress/status from its current tasks ──
+// Hoisted above handleMockRequest so it can be called from POST /projects and POST/PUT/DELETE /tasks
+// Progress = (done tasks / total tasks in project) × 100
+const syncProjectFromTasks = (pId) => {
+  if (!pId) return;
+  const allTasks    = getStorage('tasks', defaultTasks);
+  const allProjects = getStorage('projects', defaultProjects);
+
+  const pIndex = allProjects.findIndex(p => Number(p.id) === Number(pId));
+  if (pIndex === -1) return;
+
+  const projectTasks = allTasks.filter(t => Number(t.projectId) === Number(pId));
+  const total        = projectTasks.length;
+  const done         = projectTasks.filter(t => {
+    const s = String(t.status || '').toUpperCase();
+    return s === 'DONE' || s === 'COMPLETED';
+  }).length;
+
+  const progress = total === 0 ? 0 : Math.round((done / total) * 100);
+  let status = progress === 100 ? 'Completed' : progress === 0 ? 'Not Started' : 'In Progress';
+
+  allProjects[pIndex] = {
+    ...allProjects[pIndex],
+    progress,
+    status,
+    totalTasks:     total,
+    completedTasks: done,
+    pendingTasks:   total - done,
+  };
+  setStorage('projects', allProjects);
+};
+
 const handleMockRequest = (method, url, data) => {
-  let users = getStorage('users', defaultUsers);
-  const employees = getStorage('employees', defaultEmployees);
-  const projects = getStorage('projects', defaultProjects);
-  let tasks = getStorage('tasks', defaultTasks);
-  const auditLogs = getStorage('audit_logs', defaultAuditLogs);
+  // Always re-read from storage on every request to avoid stale closures
+  const users      = getStorage('users', defaultUsers);
+  const employees  = getStorage('employees', defaultEmployees);
+  const projects   = getStorage('projects', defaultProjects);
+  const tasks      = getStorage('tasks', defaultTasks);
+  const auditLogs  = getStorage('audit_logs', defaultAuditLogs);
 
   // Normalize URL
   const cleanUrl = url.split('?')[0];
@@ -462,46 +495,8 @@ const handleMockRequest = (method, url, data) => {
   }
 
 
-  // ── Recalculate and persist project progress/status from its current tasks ──
-  // Called after every task create / update / delete.
-  // Progress = (done tasks / total tasks in project) × 100
-  // Status auto-set: 0% → PLANNING, 1-99% → IN_PROGRESS, 100% → COMPLETED
-  const syncProjectFromTasks = (pId) => {
-    if (!pId) return;
-    const allTasks     = getStorage('tasks', defaultTasks);
-    const allProjects  = getStorage('projects', defaultProjects);
-
-    const pIndex = allProjects.findIndex(p => Number(p.id) === Number(pId));
-    if (pIndex === -1) return;
-
-    const projectTasks = allTasks.filter(t => Number(t.projectId) === Number(pId));
-    const total        = projectTasks.length;
-    const done         = projectTasks.filter(t => {
-      const s = String(t.status || '').toUpperCase();
-      return s === 'DONE' || s === 'COMPLETED';
-    }).length;
-
-    const progress = total === 0 ? 0 : Math.round((done / total) * 100);
-
-    let status;
-    if (progress === 100) {
-      status = 'COMPLETED';
-    } else if (progress === 0) {
-      status = 'PLANNING';
-    } else {
-      status = 'IN_PROGRESS';
-    }
-
-    allProjects[pIndex] = {
-      ...allProjects[pIndex],
-      progress,
-      status,
-      totalTasks:     total,
-      completedTasks: done,
-      pendingTasks:   total - done,
-    };
-    setStorage('projects', allProjects);
-  };
+  // syncProjectFromTasks is now defined at module scope above handleMockRequest — no-op placeholder
+  // kept for reference; actual function is hoisted above
 
   // ── GET /tasks ───────────────────────────────────────────────────────────────
   if (method === 'get' && cleanUrl === '/tasks') {
@@ -539,20 +534,29 @@ const handleMockRequest = (method, url, data) => {
 
   // ── POST /tasks ──────────────────────────────────────────────────────────────
   if (method === 'post' && cleanUrl === '/tasks') {
-    const maxTaskNum = tasks.reduce((max, taskItem) => {
+    // Re-read tasks fresh to avoid stale count
+    const latestTasks = getStorage('tasks', defaultTasks);
+    const maxTaskNum = latestTasks.reduce((max, taskItem) => {
       const num = parseInt((taskItem.taskNumber || '').replace('TSK-', '')) || 0;
       return num > max ? num : max;
     }, 1000);
+
+    const empId = data.assignedEmployeeId ? Number(data.assignedEmployeeId) : null;
+    const emp = empId ? employees.find(e => Number(e.id) === Number(empId)) : null;
+    const proj = data.projectId ? projects.find(p => Number(p.id) === Number(data.projectId)) : null;
 
     const newTask = {
       id: Date.now(),
       taskNumber: data.taskNumber || `TSK-${maxTaskNum + 1}`,
       ...data,
       projectId: Number(data.projectId),
-      assignedEmployeeId: data.assignedEmployeeId ? Number(data.assignedEmployeeId) : null
+      projectName: proj ? proj.name : (data.projectName || ''),
+      assignedEmployeeId: empId,
+      assignedEmployeeName: emp ? `${emp.firstName} ${emp.lastName}` : (data.assignedEmployeeName || ''),
+      employeeName: emp ? `${emp.firstName} ${emp.lastName}` : (data.employeeName || ''),
     };
-    tasks.push(newTask);
-    setStorage('tasks', tasks);
+    latestTasks.push(newTask);
+    setStorage('tasks', latestTasks);
     syncProjectFromTasks(newTask.projectId);
     return { status: 201, data: newTask };
   }
@@ -625,22 +629,34 @@ const handleMockRequest = (method, url, data) => {
       percentage: totalEmployees === 0 ? 0 : Math.round((deptMap[dept] / totalEmployees) * 100)
     }));
 
-    // Employee specific data
-    const currentEmp = employees.find(e => e.email === currentUser?.email || e.userId === currentUser?.id);
-    const empId = currentEmp?.id || currentUser?.id;
-    const empName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.username;
-
-    const myAssignedTasks = tasks.filter(t => 
-      Number(t.assignedEmployeeId) === Number(empId) || 
-      (t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) ||
-      (t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase())
+    // Employee specific data — resolve by email (most reliable), then by userId link, then by name
+    const currentEmp = employees.find(e =>
+      (currentUser?.email && e.email === currentUser.email) ||
+      (currentUser?.id && (Number(e.userId) === Number(currentUser.id) || Number(e.id) === Number(currentUser.id)))
     );
+    const empId = currentEmp?.id;
+    const empName = `${currentUser?.firstName || ''} ${currentUser?.lastName || ''}`.trim() || currentUser?.username || '';
+
+    const myAssignedTasks = tasks.filter(t => {
+      if (empId && Number(t.assignedEmployeeId) === Number(empId)) return true;
+      if (empName && t.assignedEmployeeName && t.assignedEmployeeName.toLowerCase() === empName.toLowerCase()) return true;
+      if (empName && t.employeeName && t.employeeName.toLowerCase() === empName.toLowerCase()) return true;
+      // Also match by current user's username stored in task
+      if (currentUser?.username && t.assignedUsername && t.assignedUsername === currentUser.username) return true;
+      return false;
+    });
     const myCompletedTasksCount = myAssignedTasks.filter(t => t.status === 'COMPLETED' || t.status === 'DONE' || t.status === 'Completed' || t.status === 'Done').length;
     const myPendingTasksCount = myAssignedTasks.length - myCompletedTasksCount;
     const myTaskCompletionRate = myAssignedTasks.length === 0 ? 0 : Math.round((myCompletedTasksCount / myAssignedTasks.length) * 100);
 
+    // Also include projects where the employee is directly assigned via assignedEmployeeIds
     const myProjectIds = [...new Set(myAssignedTasks.map(t => Number(t.projectId)).filter(Boolean))];
-    const myAssignedProjects = activeProjectsList.filter(p => myProjectIds.includes(Number(p.id)));
+    const myDirectProjects = empId
+      ? projects.filter(p => Array.isArray(p.assignedEmployeeIds) && p.assignedEmployeeIds.some(id => Number(id) === Number(empId)))
+      : [];
+    const myDirectProjectIds = myDirectProjects.map(p => Number(p.id));
+    const allMyProjectIds = [...new Set([...myProjectIds, ...myDirectProjectIds])];
+    const myAssignedProjects = activeProjectsList.filter(p => allMyProjectIds.includes(Number(p.id)));
 
     const upcomingDeadlines = myAssignedTasks
       .filter(t => t.status !== 'COMPLETED' && t.status !== 'DONE' && t.status !== 'Completed' && t.status !== 'Done')
